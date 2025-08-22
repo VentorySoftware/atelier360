@@ -14,16 +14,319 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      appointments: {
+        Row: {
+          appointment_date: string
+          appointment_time: string
+          client_id: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          notes: string | null
+          status: string | null
+          updated_at: string | null
+          work_id: string
+        }
+        Insert: {
+          appointment_date: string
+          appointment_time: string
+          client_id: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+          work_id: string
+        }
+        Update: {
+          appointment_date?: string
+          appointment_time?: string
+          client_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+          work_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_work_id_fkey"
+            columns: ["work_id"]
+            isOneToOne: false
+            referencedRelation: "works"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          created_by: string | null
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact_attempts: {
+        Row: {
+          contact_date: string | null
+          contact_method: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          work_id: string
+        }
+        Insert: {
+          contact_date?: string | null
+          contact_method: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          work_id: string
+        }
+        Update: {
+          contact_date?: string | null
+          contact_method?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          work_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_attempts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_attempts_work_id_fkey"
+            columns: ["work_id"]
+            isOneToOne: false
+            referencedRelation: "works"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string
+          full_name: string | null
+          id: string
+          role: Database["public"]["Enums"]["user_role"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          full_name?: string | null
+          id: string
+          role?: Database["public"]["Enums"]["user_role"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      work_categories: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          estimated_hours: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          requires_appointment: boolean | null
+          tolerance_days: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          estimated_hours?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          requires_appointment?: boolean | null
+          tolerance_days?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          estimated_hours?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          requires_appointment?: boolean | null
+          tolerance_days?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_categories_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      works: {
+        Row: {
+          actual_delivery_date: string | null
+          category_id: string
+          client_id: string
+          created_at: string | null
+          created_by: string | null
+          deposit_amount: number | null
+          deposit_status: Database["public"]["Enums"]["payment_status"] | null
+          entry_date: string
+          id: string
+          notes: string | null
+          price: number
+          status: Database["public"]["Enums"]["work_status"] | null
+          tentative_delivery_date: string
+          updated_at: string | null
+        }
+        Insert: {
+          actual_delivery_date?: string | null
+          category_id: string
+          client_id: string
+          created_at?: string | null
+          created_by?: string | null
+          deposit_amount?: number | null
+          deposit_status?: Database["public"]["Enums"]["payment_status"] | null
+          entry_date?: string
+          id?: string
+          notes?: string | null
+          price: number
+          status?: Database["public"]["Enums"]["work_status"] | null
+          tentative_delivery_date: string
+          updated_at?: string | null
+        }
+        Update: {
+          actual_delivery_date?: string | null
+          category_id?: string
+          client_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          deposit_amount?: number | null
+          deposit_status?: Database["public"]["Enums"]["payment_status"] | null
+          entry_date?: string
+          id?: string
+          notes?: string | null
+          price?: number
+          status?: Database["public"]["Enums"]["work_status"] | null
+          tentative_delivery_date?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "works_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "work_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "works_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "works_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
     }
     Enums: {
-      [_ in never]: never
+      payment_status: "pending" | "partial" | "completed"
+      user_role: "super_admin" | "admin"
+      work_status:
+        | "pending"
+        | "in_progress"
+        | "completed"
+        | "delivered"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +453,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      payment_status: ["pending", "partial", "completed"],
+      user_role: ["super_admin", "admin"],
+      work_status: [
+        "pending",
+        "in_progress",
+        "completed",
+        "delivered",
+        "cancelled",
+      ],
+    },
   },
 } as const
