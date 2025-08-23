@@ -13,10 +13,10 @@ export function Layout({ children }: LayoutProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Cargando...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-dashboard">
+        <div className="text-center animate-fade-in">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto shadow-glow"></div>
+          <p className="mt-4 text-muted-foreground text-responsive-sm">Cargando...</p>
         </div>
       </div>
     );
@@ -28,16 +28,18 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-screen flex w-full bg-gradient-dashboard">
         <AppSidebar />
         
         <div className="flex-1 flex flex-col">
-          <header className="h-14 flex items-center border-b border-border bg-background px-4">
-            <SidebarTrigger />
+          <header className="h-14 flex items-center border-b border-border bg-gradient-card shadow-soft px-4 transition-smooth">
+            <SidebarTrigger className="hover-scale" />
           </header>
           
-          <main className="flex-1 p-6">
-            {children}
+          <main className="flex-1 p-responsive">
+            <div className="animate-fade-in">
+              {children}
+            </div>
           </main>
         </div>
       </div>

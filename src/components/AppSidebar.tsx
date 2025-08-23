@@ -24,6 +24,7 @@ import {
   useSidebar
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
@@ -126,15 +127,18 @@ export function AppSidebar() {
             {user.email}
           </div>
         )}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleSignOut}
-          className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent"
-        >
-          <LogOut className="h-4 w-4" />
-          {!collapsed && <span className="ml-2">Cerrar Sesión</span>}
-        </Button>
+        <div className={`flex ${collapsed ? 'flex-col space-y-2' : 'space-x-2'}`}>
+          <ThemeToggle />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleSignOut}
+            className={`${collapsed ? 'w-full' : 'flex-1'} justify-start text-sidebar-foreground hover:bg-sidebar-accent`}
+          >
+            <LogOut className="h-4 w-4" />
+            {!collapsed && <span className="ml-2">Cerrar Sesión</span>}
+          </Button>
+        </div>
       </SidebarFooter>
     </Sidebar>
   );
