@@ -9,6 +9,9 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Clients from "./pages/Clients";
 import Categories from "./pages/Categories";
+import Works from "./pages/Works";
+import CreateWork from "./pages/CreateWork";
+import CalendarPage from "./pages/CalendarPage";
 
 const queryClient = new QueryClient();
 
@@ -22,11 +25,12 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<Layout><Dashboard /></Layout>} />
           <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
-          <Route path="/create-work" element={<Layout><div>Crear Trabajo - Próximamente</div></Layout>} />
-          <Route path="/works" element={<Layout><div>Trabajos - Próximamente</div></Layout>} />
+          <Route path="/create-work" element={<Layout><CreateWork /></Layout>} />
+          <Route path="/works" element={<Layout><Works /></Layout>} />
           <Route path="/clients" element={<Layout><Clients /></Layout>} />
           <Route path="/categories" element={<Layout><Categories /></Layout>} />
-          <Route path="/calendar" element={<Layout><div>Calendario - Próximamente</div></Layout>} />
+          <Route path="/calendar" element={<Layout><CalendarPage /></Layout>} />
+          
           <Route path="/users" element={<Layout><div>Usuarios - Próximamente</div></Layout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
