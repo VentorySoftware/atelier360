@@ -13,6 +13,8 @@ import Categories from "./pages/Categories";
 import Works from "./pages/Works";
 import CreateWork from "./pages/CreateWork";
 import CalendarPage from "./pages/CalendarPage";
+import WorkDetail from "./pages/WorkDetail";
+import WorkshopInfo from "./pages/WorkshopInfo"; // Import the new component
 
 const queryClient = new QueryClient();
 
@@ -35,11 +37,11 @@ const App = () => (
             <Route path="/create-work" element={<Layout><CreateWork /></Layout>} />
             <Route path="/works" element={<Layout><Works /></Layout>} />
             <Route path="/clients" element={<Layout><Clients /></Layout>} />
+            <Route path="/works/:workId" element={<Layout><WorkDetail /></Layout>} />
             <Route path="/categories" element={<Layout><Categories /></Layout>} />
             <Route path="/calendar" element={<Layout><CalendarPage /></Layout>} />
-            
+            <Route path="/workshop-info" element={<Layout><WorkshopInfo /></Layout>} /> {/* New route for WorkshopInfo */}
             <Route path="/users" element={<Layout><div>Usuarios - Próximamente</div></Layout>} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

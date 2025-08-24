@@ -39,6 +39,7 @@ const mainItems = [
 
 const adminItems = [
   { title: 'Usuarios', url: '/users', icon: Settings },
+  { title: 'Información del Taller', url: '/workshop-info', icon: Settings },
 ];
 
 export function AppSidebar() {

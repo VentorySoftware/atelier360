@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Calendar as CalendarIcon, Clock, ChevronLeft, ChevronRight, Plus, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -614,7 +613,9 @@ export default function CalendarPage() {
                 <Button 
                   variant="outline"
                   onClick={() => {
-                    navigate(`/works`);
+                    if (selectedAppointment) {
+                      navigate(`/works/${selectedAppointment.work_id}`);
+                    }
                     setIsDetailDialogOpen(false);
                   }}
                 >

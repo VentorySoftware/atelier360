@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const Auth = () => {
   const { user, signIn, signUp, loading } = useAuth();
@@ -84,7 +85,10 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md relative">
+        <div className="absolute top-4 right-4">
+          <ThemeToggle />
+        </div>
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Atelier360</CardTitle>
           <CardDescription>
@@ -173,7 +177,12 @@ const Auth = () => {
               </form>
             </TabsContent>
           </Tabs>
-        </CardContent>
+</CardContent>
+        <div className="text-center mt-4 text-sm text-gray-500">
+<div className="text-center mt-4 text-lg font-bold text-gray-900 dark:text-gray-100 shadow-lg p-2 rounded-md bg-gradient-to-r from-blue-500 to-purple-500 transition duration-300 hover:scale-105 animate-[slide-up 1s ease-in-out infinite]">
+            Developed by Ventory
+          </div>
+        </div>
       </Card>
     </div>
   );

@@ -32,7 +32,7 @@ export function Layout({ children }: LayoutProps) {
         <AppSidebar />
         
         <div className="flex-1 flex flex-col">
-          <header className="h-14 flex items-center border-b border-border bg-gradient-card shadow-soft px-4 transition-smooth">
+          <header className="h-14 flex items-center justify-between border-b border-border bg-gradient-card shadow-soft px-4 transition-smooth">
             <SidebarTrigger className="hover-scale" />
           </header>
           

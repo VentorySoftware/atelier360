@@ -96,7 +96,7 @@ export default function Works() {
     }
   };
 
-  const updateWorkStatus = async (workId: string, newStatus: string) => {
+const updateWorkStatus = async (workId: string, newStatus: string, clientPhone: string) => {
     try {
       const updateData: any = { status: newStatus };
       
@@ -111,6 +111,66 @@ export default function Works() {
         .eq('id', workId);
 
       if (error) throw error;
+
+      // Enviar notificación por WhatsApp si el estado es "completado" y hay número de teléfono
+      if (newStatus === 'completed' && clientPhone) {
+        try {
+          // Obtener información completa del trabajo para la plantilla
+          const work = works.find(w => w.id === workId);
+          if (work) {
+            // Formatear el número de teléfono (remover caracteres no numéricos)
+            const formattedPhone = clientPhone.replace(/\D/g, '');
+            
+            // Crear plantilla completa del mensaje
+            const saldoPendiente = work.price - work.deposit_amount;
+            const tieneSaldo = saldoPendiente > 0;
+            const workshopInfo = JSON.parse(localStorage.getItem('workshopInfo') || '{}');
+            
+            // Depuración: mostrar la estructura de workshopInfo
+            console.log('Datos del taller:', workshopInfo);
+            
+            const message = `🎉 *¡Hola! Su trabajo está completado* 🎉\n\n` +
+                           `✨ *Detalles del trabajo:*\n` +
+                           `🆔 *ID:* ${workId}\n` +
+                           `📦 *Categoría:* ${work.work_categories.name}\n` +
+                           `💰 *Precio total:* ${formatCurrency(work.price)}\n` +
+                           `💵 *Seña abonada:* ${formatCurrency(work.deposit_amount)}\n` +
+                           `${tieneSaldo ? `📋 *Saldo pendiente:* ${formatCurrency(saldoPendiente)}\n` : '✅ *Pago completo*\n'}\n` +
+                           `🏢 *Dirección del taller:*\n` +
+                           `📍 ${workshopInfo.street || ''} ${workshopInfo.number || ''}, ${workshopInfo.neighborhood || ''}, ${workshopInfo.city || ''}, ${workshopInfo.province || ''}\n\n` +
+                           `⏰ *Horarios de atención:*\n` +
+                           `📅 *Lunes a Viernes:* ${workshopInfo.weekdays?.timeRanges?.length > 0 ? 
+                             workshopInfo.weekdays.timeRanges.map(range => `${range.start} - ${range.end}`).join(', ') : 'No disponible'}\n` +
+                           `🗓️ *Sábados:* ${workshopInfo.saturday?.timeRanges?.length > 0 ? 
+                             workshopInfo.saturday.timeRanges.map(range => `${range.start} - ${range.end}`).join(', ') : 'No disponible'}\n` +
+                           `📆 *Domingos:* ${workshopInfo.sunday?.timeRanges?.length > 0 ? 
+                             workshopInfo.sunday.timeRanges.map(range => `${range.start} - ${range.end}`).join(', ') : 'No disponible'}\n` +
+                           `🎊 *Feriados:* ${workshopInfo.holidays?.timeRanges?.length > 0 ? 
+                             workshopInfo.holidays.timeRanges.map(range => `${range.start} - ${range.end}`).join(', ') : 'No disponible'}\n\n` +
+                           `${workshopInfo.references ? `🗺️ *Referencias:*\n${workshopInfo.references}\n\n` : ''}` +
+                           `📱 *Cualquier consulta no dudes en comunicarte*\n\n` +
+                           `🙏 *¡Gracias por confiar en nosotros!* ❤️`;
+            
+            // Crear el enlace de WhatsApp
+            const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
+            
+            // Abrir WhatsApp en una nueva pestaña
+            window.open(whatsappUrl, '_blank');
+            
+            toast({
+              title: 'WhatsApp abierto',
+              description: 'Se ha abierto WhatsApp con la plantilla del mensaje para el cliente'
+            });
+          }
+        } catch (whatsappError) {
+          console.error('Error al abrir WhatsApp:', whatsappError);
+          toast({
+            title: 'Error de WhatsApp',
+            description: 'No se pudo abrir WhatsApp, pero el estado se actualizó correctamente',
+            variant: 'destructive'
+          });
+        }
+      }
 
       toast({
         title: 'Estado actualizado',
@@ -293,7 +353,7 @@ export default function Works() {
                     <Badge variant={statusColors[work.status as keyof typeof statusColors] as any} className="shadow-elegant">
                       {statusLabels[work.status as keyof typeof statusLabels]}
                     </Badge>
-                    <Select value={work.status} onValueChange={(newStatus) => updateWorkStatus(work.id, newStatus)}>
+<Select value={work.status} onValueChange={(newStatus) => updateWorkStatus(work.id, newStatus, work.clients.phone)}>
                       <SelectTrigger className="w-auto h-8 hover-scale transition-smooth">
                         <Edit className="h-4 w-4" />
                       </SelectTrigger>
@@ -464,10 +524,23 @@ export default function Works() {
                     <div>
                       <p className="font-medium text-gradient">{selectedWork.clients.name}</p>
                       {selectedWork.clients.phone && (
-                        <p className="text-responsive-sm text-muted-foreground flex items-center space-x-1">
-                          <span>📞</span>
-                          <span>{selectedWork.clients.phone}</span>
-                        </p>
+                        <div className="space-y-2">
+                          <p className="text-responsive-sm text-muted-foreground flex items-center space-x-1">
+                            <span>📞</span>
+                            <span>{selectedWork.clients.phone}</span>
+                          </p>
+                          <a
+                            href={`https://wa.me/${selectedWork.clients.phone.replace(/\D/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center text-green-600 hover:text-green-700 transition-colors text-responsive-sm"
+                          >
+                            <svg className="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.864 3.488"/>
+                            </svg>
+                            Enviar mensaje por WhatsApp
+                          </a>
+                        </div>
                       )}
                     </div>
                     
