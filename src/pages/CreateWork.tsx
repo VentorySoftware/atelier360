@@ -217,75 +217,75 @@ export default function CreateWork() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit}>
-        <Card>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Información del Cliente y Trabajo */}
+        <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Tag className="h-5 w-5" />
-              <span>Información del Trabajo</span>
-            </CardTitle>
+            <CardTitle>Información del Cliente y Trabajo</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Cliente */}
-            <div className="space-y-2">
-              <Label htmlFor="client">Cliente *</Label>
-              <Select value={formData.client_id} onValueChange={(value) => setFormData({ ...formData, client_id: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona un cliente" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <div className="flex items-center">
-                <p className="text-sm text-muted-foreground">
-                  ¿No encuentras al cliente?
-                </p>
-                <QuickClientForm 
-                  onClientCreated={(client) => {
-                    // Agregar el nuevo cliente a la lista local
-                    setClients(prevClients => [...prevClients, client]);
-                    // Seleccionar automáticamente el nuevo cliente
-                    setFormData({ ...formData, client_id: client.id });
-                  }} 
-                />
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="client">Cliente *</Label>
+                <Select value={formData.client_id} onValueChange={(value) => setFormData({ ...formData, client_id: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona un cliente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
-            {/* Categoría */}
-            <div className="space-y-2">
-              <Label htmlFor="category">Categoría de Trabajo *</Label>
-              <Select value={formData.category_id} onValueChange={handleCategoryChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona una categoría" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      <div className="flex justify-between w-full">
-                        <span>{category.name}</span>
-                        <span className="text-muted-foreground text-sm ml-2">
-                          {category.estimated_hours}h
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {categories.length === 0 && (
-                <p className="text-sm text-muted-foreground">
-                  No hay categorías disponibles. 
-                  <Button variant="link" className="h-auto p-0 ml-1" onClick={() => navigate('/categories')}>
-                    Crear nueva categoría
-                  </Button>
-                </p>
-              )}
+            {/* Trabajo */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="category">Categoría de Trabajo *</Label>
+                <Select value={formData.category_id} onValueChange={handleCategoryChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona una categoría" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        <div className="flex justify-between w-full">
+                          <span>{category.name}</span>
+                          <span className="text-muted-foreground text-sm ml-2">
+                            {category.estimated_hours}h
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {categories.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    No hay categorías disponibles. 
+                    <Button variant="link" className="h-auto p-0 ml-1" onClick={() => navigate('/categories')}>
+                      Crear nueva categoría
+                    </Button>
+                  </p>
+                )}
+              </div>
             </div>
+          </CardContent>
+        </Card>
 
+        {/* Información Financiera */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <DollarSign className="h-5 w-5" />
+              <span>Información Financiera</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
             {/* Precios */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -338,7 +338,18 @@ export default function CreateWork() {
                 </SelectContent>
               </Select>
             </div>
+          </CardContent>
+        </Card>
 
+        {/* Fechas y Programación */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Calendar className="h-5 w-5" />
+              <span>Fechas y Programación</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
             {/* Fechas */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -405,7 +416,18 @@ export default function CreateWork() {
                 />
               </div>
             )}
+          </CardContent>
+        </Card>
 
+        {/* Información Adicional */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Tag className="h-5 w-5" />
+              <span>Información Adicional</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
             {/* Notas */}
             <div className="space-y-2">
               <Label htmlFor="notes">Notas</Label>

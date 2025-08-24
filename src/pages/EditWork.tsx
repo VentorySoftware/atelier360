@@ -174,75 +174,73 @@ const EditWork: React.FC = () => {
 
       <form onSubmit={handleUpdate} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Información del Cliente */}
-          <Card>
+          {/* Información del Cliente y Trabajo - Combinada */}
+          <Card className="md:col-span-2">
             <CardHeader>
-              <CardTitle>Información del Cliente</CardTitle>
+              <CardTitle>Información del Cliente y Trabajo</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="client_id">Cliente</Label>
-                <Select
-                  value={work.client_id}
-                  onValueChange={(value) => handleInputChange('client_id', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar cliente" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id}>
-                        {client.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Información del Trabajo */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Información del Trabajo</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="category_id">Categoría</Label>
-                <Select
-                  value={work.category_id}
-                  onValueChange={(value) => handleInputChange('category_id', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar categoría" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Información del Cliente */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="client_id">Cliente</Label>
+                  <Select
+                    value={work.client_id}
+                    onValueChange={(value) => handleInputChange('client_id', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar cliente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clients.map((client) => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="status">Estado</Label>
-                <Select
-                  value={work.status}
-                  onValueChange={(value) => handleInputChange('status', value as WorkStatus)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar estado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pending">Pendiente</SelectItem>
-                    <SelectItem value="in_progress">En Progreso</SelectItem>
-                    <SelectItem value="completed">Completado</SelectItem>
-                    <SelectItem value="delivered">Entregado</SelectItem>
-                    <SelectItem value="cancelled">Cancelado</SelectItem>
-                  </SelectContent>
-                </Select>
+              {/* Información del Trabajo */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="category_id">Categoría</Label>
+                  <Select
+                    value={work.category_id}
+                    onValueChange={(value) => handleInputChange('category_id', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar categoría" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="status">Estado</Label>
+                  <Select
+                    value={work.status}
+                    onValueChange={(value) => handleInputChange('status', value as WorkStatus)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar estado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Pendiente</SelectItem>
+                      <SelectItem value="in_progress">En Progreso</SelectItem>
+                      <SelectItem value="completed">Completado</SelectItem>
+                      <SelectItem value="delivered">Entregado</SelectItem>
+                      <SelectItem value="cancelled">Cancelado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </CardContent>
           </Card>
