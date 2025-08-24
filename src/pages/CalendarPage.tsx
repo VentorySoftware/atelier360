@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Calendar as CalendarIcon, Clock, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, ChevronLeft, ChevronRight, Plus, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 
 interface Appointment {
   id: string;
@@ -77,6 +78,7 @@ export default function CalendarPage() {
     notes: ''
   });
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchAppointments();
@@ -608,29 +610,41 @@ export default function CalendarPage() {
                 </div>
               )}
 
-              <div className="flex justify-end space-x-2 pt-4 border-t">
+              <div className="flex justify-between items-center pt-4 border-t">
                 <Button 
-                  variant="outline" 
-                  onClick={() => setIsDetailDialogOpen(false)}
-                >
-                  Cerrar
-                </Button>
-                <Select
-                  value={selectedAppointment.status}
-                  onValueChange={(newStatus) => {
-                    updateAppointmentStatus(selectedAppointment.id, newStatus);
-                    setSelectedAppointment(prev => prev ? {...prev, status: newStatus} : null);
+                  variant="outline"
+                  onClick={() => {
+                    navigate(`/works`);
+                    setIsDetailDialogOpen(false);
                   }}
                 >
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Cambiar estado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(statusLabels).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>{label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Ver Trabajo
+                </Button>
+                <div className="flex space-x-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsDetailDialogOpen(false)}
+                  >
+                    Cerrar
+                  </Button>
+                  <Select
+                    value={selectedAppointment.status}
+                    onValueChange={(newStatus) => {
+                      updateAppointmentStatus(selectedAppointment.id, newStatus);
+                      setSelectedAppointment(prev => prev ? {...prev, status: newStatus} : null);
+                    }}
+                  >
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Cambiar estado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(statusLabels).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>{label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
           )}
