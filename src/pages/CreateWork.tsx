@@ -20,6 +20,7 @@ interface Category {
   name: string;
   estimated_hours: number;
   tolerance_days: number;
+  requires_appointment: boolean;
 }
 
 export default function CreateWork() {
@@ -34,6 +35,8 @@ export default function CreateWork() {
     deposit_status: 'pending',
     entry_date: new Date().toISOString().split('T')[0],
     tentative_delivery_date: '',
+    appointment_date: '',
+    appointment_time: '',
     notes: ''
   });
   const { toast } = useToast();
@@ -66,7 +69,7 @@ export default function CreateWork() {
     try {
       const { data, error } = await supabase
         .from('work_categories')
-        .select('id, name, estimated_hours, tolerance_days')
+        .select('id, name, estimated_hours, tolerance_days, requires_appointment')
         .eq('is_active', true)
         .order('name');
 
@@ -110,12 +113,18 @@ export default function CreateWork() {
     setFormData({
       ...formData,
       category_id: categoryId,
-      tentative_delivery_date: deliveryDate
+      tentative_delivery_date: deliveryDate,
+      // Reset appointment fields when category changes
+      appointment_date: '',
+      appointment_time: ''
     });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check if category requires appointment
+    const selectedCategory = categories.find(c => c.id === formData.category_id);
     
     if (!formData.client_id || !formData.category_id || !formData.price) {
       toast({
@@ -126,10 +135,21 @@ export default function CreateWork() {
       return;
     }
 
+    // Validate appointment fields if category requires appointment
+    if (selectedCategory?.requires_appointment && (!formData.appointment_date || !formData.appointment_time)) {
+      toast({
+        title: 'Error',
+        description: 'La cita con el cliente es obligatoria para esta categoría',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const { error } = await supabase
+      // Create the work first
+      const { data: workData, error: workError } = await supabase
         .from('works')
         .insert({
           client_id: formData.client_id,
@@ -141,17 +161,37 @@ export default function CreateWork() {
           tentative_delivery_date: formData.tentative_delivery_date,
           notes: formData.notes || null,
           status: 'pending' as const
-        });
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (workError) throw workError;
+
+      // Create appointment if category requires it
+      if (selectedCategory?.requires_appointment && formData.appointment_date && formData.appointment_time) {
+        const { error: appointmentError } = await supabase
+          .from('appointments')
+          .insert({
+            work_id: workData.id,
+            client_id: formData.client_id,
+            appointment_date: formData.appointment_date,
+            appointment_time: formData.appointment_time,
+            status: 'scheduled'
+          });
+
+        if (appointmentError) throw appointmentError;
+      }
 
       toast({
         title: 'Trabajo creado',
-        description: 'El trabajo se ha creado correctamente'
+        description: selectedCategory?.requires_appointment 
+          ? 'El trabajo y la cita se han creado correctamente'
+          : 'El trabajo se ha creado correctamente'
       });
 
       navigate('/works');
     } catch (error) {
+      console.error('Error creating work:', error);
       toast({
         title: 'Error',
         description: 'No se pudo crear el trabajo',
@@ -335,6 +375,45 @@ export default function CreateWork() {
                 )}
               </div>
             </div>
+
+            {/* Cita con el cliente - solo visible si la categoría requiere cita */}
+            {formData.category_id && categories.find(c => c.id === formData.category_id)?.requires_appointment && (
+              <div className="space-y-4 p-4 border rounded-lg bg-accent/50">
+                <div className="flex items-center space-x-2">
+                  <User className="h-4 w-4 text-primary" />
+                  <Label className="text-base font-medium">Cita con el cliente *</Label>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="appointment_date">Fecha de la cita</Label>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="appointment_date"
+                        type="date"
+                        className="pl-10"
+                        value={formData.appointment_date}
+                        onChange={(e) => setFormData({ ...formData, appointment_date: e.target.value })}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="appointment_time">Hora de la cita</Label>
+                    <Input
+                      id="appointment_time"
+                      type="time"
+                      value={formData.appointment_time}
+                      onChange={(e) => setFormData({ ...formData, appointment_time: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Esta categoría requiere una cita con el cliente. La cita será visible en el calendario.
+                </p>
+              </div>
+            )}
 
             {/* Notas */}
             <div className="space-y-2">
