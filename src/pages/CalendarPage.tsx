@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Calendar as CalendarIcon, Clock, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -42,6 +43,7 @@ interface Work {
   };
   work_categories: {
     name: string;
+    requires_appointment: boolean;
   };
 }
 
@@ -61,12 +63,12 @@ const statusColors = {
 
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [works, setWorks] = useState<Work[]>([]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     work_id: '',
@@ -78,7 +80,7 @@ export default function CalendarPage() {
 
   useEffect(() => {
     fetchAppointments();
-    fetchPendingWorks();
+    fetchWorksRequiringAppointment();
   }, [currentDate]);
 
   const fetchAppointments = async () => {
@@ -105,8 +107,11 @@ export default function CalendarPage() {
         .order('appointment_time');
 
       if (error) throw error;
+      
+      console.log('Fetched appointments:', data);
       setAppointments(data || []);
     } catch (error) {
+      console.error('Error fetching appointments:', error);
       toast({
         title: 'Error',
         description: 'No se pudieron cargar las citas',
@@ -117,7 +122,7 @@ export default function CalendarPage() {
     }
   };
 
-  const fetchPendingWorks = async () => {
+  const fetchWorksRequiringAppointment = async () => {
     try {
       const { data, error } = await supabase
         .from('works')
@@ -130,7 +135,14 @@ export default function CalendarPage() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setWorks(data || []);
+      
+      // Filter only works that require appointment
+      const worksNeedingAppointment = (data || []).filter(
+        work => work.work_categories.requires_appointment === true
+      );
+      
+      console.log('Works requiring appointment:', worksNeedingAppointment);
+      setWorks(worksNeedingAppointment);
     } catch (error) {
       console.error('Error fetching works:', error);
     }
@@ -174,6 +186,7 @@ export default function CalendarPage() {
       setIsCreateDialogOpen(false);
       fetchAppointments();
     } catch (error) {
+      console.error('Error creating appointment:', error);
       toast({
         title: 'Error',
         description: 'No se pudo crear la cita',
@@ -216,7 +229,9 @@ export default function CalendarPage() {
   const getAppointmentsForDate = (date: number) => {
     const dateStr = new Date(currentDate.getFullYear(), currentDate.getMonth(), date)
       .toISOString().split('T')[0];
-    return appointments.filter(apt => apt.appointment_date === dateStr);
+    const dayAppointments = appointments.filter(apt => apt.appointment_date === dateStr);
+    console.log(`Appointments for ${dateStr}:`, dayAppointments);
+    return dayAppointments;
   };
 
   const navigateMonth = (direction: 'prev' | 'next') => {
@@ -247,6 +262,11 @@ export default function CalendarPage() {
     setIsDetailDialogOpen(true);
   };
 
+  const handleDateClick = (date: Date) => {
+    setSelectedDate(date);
+    // Don't automatically open create dialog
+  };
+
   const renderCalendarGrid = () => {
     const daysInMonth = getDaysInMonth(currentDate);
     const firstDay = getFirstDayOfMonth(currentDate);
@@ -260,21 +280,23 @@ export default function CalendarPage() {
     // Days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const dayAppointments = getAppointmentsForDate(day);
-      const isToday = new Date().toDateString() === new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toDateString();
+      const currentDayDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+      const isToday = new Date().toDateString() === currentDayDate.toDateString();
+      const isSelected = selectedDate?.toDateString() === currentDayDate.toDateString();
 
       days.push(
         <div
           key={day}
-          className={`h-24 border border-border p-1 cursor-pointer hover:bg-accent ${
+          className={`h-24 border border-border p-1 cursor-pointer hover:bg-accent transition-colors ${
             isToday ? 'bg-primary/10' : ''
-          }`}
-          onClick={() => openCreateDialog(new Date(currentDate.getFullYear(), currentDate.getMonth(), day))}
+          } ${isSelected ? 'bg-accent' : ''}`}
+          onClick={() => handleDateClick(currentDayDate)}
         >
           <div className={`font-medium text-sm ${isToday ? 'text-primary' : ''}`}>
             {day}
           </div>
           <div className="space-y-1 mt-1 max-h-16 overflow-y-auto">
-            {dayAppointments.slice(0, 3).map((apt) => (
+            {dayAppointments.slice(0, 2).map((apt) => (
               <div
                 key={apt.id}
                 className="text-xs p-1 rounded bg-primary/20 text-primary truncate cursor-pointer hover:bg-primary/30 transition-colors"
@@ -284,23 +306,12 @@ export default function CalendarPage() {
                 }}
                 title={`${apt.appointment_time} - ${apt.clients.name} - ${apt.works.work_categories.name}`}
               >
-                {apt.appointment_time} - {apt.clients.name}
+                {apt.appointment_time} {apt.clients.name}
               </div>
             ))}
-            {dayAppointments.length > 3 && (
-              <div 
-                className="text-xs text-muted-foreground cursor-pointer hover:text-foreground"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // Show all appointments for this day
-                  const dateStr = `${day} de ${currentDate.toLocaleDateString('es-ES', { month: 'long' })}`;
-                  toast({
-                    title: `Citas del ${dateStr}`,
-                    description: `${dayAppointments.length} citas programadas`,
-                  });
-                }}
-              >
-                +{dayAppointments.length - 3} más
+            {dayAppointments.length > 2 && (
+              <div className="text-xs text-muted-foreground">
+                +{dayAppointments.length - 2} más
               </div>
             )}
           </div>
@@ -332,7 +343,7 @@ export default function CalendarPage() {
         
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => openCreateDialog()}>
+            <Button onClick={() => openCreateDialog(selectedDate || undefined)}>
               <Plus className="h-4 w-4 mr-2" />
               Nueva Cita
             </Button>
@@ -343,17 +354,21 @@ export default function CalendarPage() {
             </DialogHeader>
             <form onSubmit={handleCreateAppointment} className="space-y-4">
               <div>
-                <Label htmlFor="work">Trabajo *</Label>
+                <Label htmlFor="work">Trabajo que requiere cita *</Label>
                 <Select value={formData.work_id} onValueChange={(value) => setFormData({ ...formData, work_id: value })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecciona un trabajo" />
                   </SelectTrigger>
                   <SelectContent>
-                    {works.map((work) => (
-                      <SelectItem key={work.id} value={work.id}>
-                        {work.clients.name} - {work.work_categories.name}
-                      </SelectItem>
-                    ))}
+                    {works.length === 0 ? (
+                      <SelectItem value="" disabled>No hay trabajos que requieran cita</SelectItem>
+                    ) : (
+                      works.map((work) => (
+                        <SelectItem key={work.id} value={work.id}>
+                          {work.clients.name} - {work.work_categories.name}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -395,7 +410,7 @@ export default function CalendarPage() {
                 <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit">
+                <Button type="submit" disabled={works.length === 0}>
                   Programar Cita
                 </Button>
               </div>
@@ -403,6 +418,28 @@ export default function CalendarPage() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {selectedDate && (
+        <Card className="bg-accent/50">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Fecha seleccionada:</p>
+                <p className="font-medium">{selectedDate.toLocaleDateString('es-ES', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}</p>
+              </div>
+              <Button size="sm" onClick={() => openCreateDialog(selectedDate)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Crear Cita
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
