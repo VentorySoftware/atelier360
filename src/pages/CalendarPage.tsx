@@ -24,6 +24,10 @@ interface Appointment {
     phone?: string;
   };
   works: {
+    id: string;
+    entry_date: string;
+    price: number;
+    status: string;
     work_categories: {
       name: string;
     };
@@ -60,6 +64,8 @@ export default function CalendarPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [works, setWorks] = useState<Work[]>([]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
@@ -86,6 +92,10 @@ export default function CalendarPage() {
           *,
           clients (name, phone),
           works (
+            id,
+            entry_date,
+            price,
+            status,
             work_categories (name)
           )
         `)
@@ -114,7 +124,7 @@ export default function CalendarPage() {
         .select(`
           id,
           clients (id, name),
-          work_categories (name)
+          work_categories (name, requires_appointment)
         `)
         .in('status', ['pending', 'in_progress'])
         .order('created_at', { ascending: false });
@@ -232,6 +242,11 @@ export default function CalendarPage() {
     setIsCreateDialogOpen(true);
   };
 
+  const openDetailDialog = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setIsDetailDialogOpen(true);
+  };
+
   const renderCalendarGrid = () => {
     const daysInMonth = getDaysInMonth(currentDate);
     const firstDay = getFirstDayOfMonth(currentDate);
@@ -258,19 +273,34 @@ export default function CalendarPage() {
           <div className={`font-medium text-sm ${isToday ? 'text-primary' : ''}`}>
             {day}
           </div>
-          <div className="space-y-1 mt-1">
-            {dayAppointments.slice(0, 2).map((apt) => (
+          <div className="space-y-1 mt-1 max-h-16 overflow-y-auto">
+            {dayAppointments.slice(0, 3).map((apt) => (
               <div
                 key={apt.id}
-                className="text-xs p-1 rounded bg-primary/20 text-primary truncate"
-                onClick={(e) => e.stopPropagation()}
+                className="text-xs p-1 rounded bg-primary/20 text-primary truncate cursor-pointer hover:bg-primary/30 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openDetailDialog(apt);
+                }}
+                title={`${apt.appointment_time} - ${apt.clients.name} - ${apt.works.work_categories.name}`}
               >
                 {apt.appointment_time} - {apt.clients.name}
               </div>
             ))}
-            {dayAppointments.length > 2 && (
-              <div className="text-xs text-muted-foreground">
-                +{dayAppointments.length - 2} más
+            {dayAppointments.length > 3 && (
+              <div 
+                className="text-xs text-muted-foreground cursor-pointer hover:text-foreground"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // Show all appointments for this day
+                  const dateStr = `${day} de ${currentDate.toLocaleDateString('es-ES', { month: 'long' })}`;
+                  toast({
+                    title: `Citas del ${dateStr}`,
+                    description: `${dayAppointments.length} citas programadas`,
+                  });
+                }}
+              >
+                +{dayAppointments.length - 3} más
               </div>
             )}
           </div>
@@ -433,8 +463,12 @@ export default function CalendarPage() {
             ) : (
               <div className="space-y-3">
                 {todayAppointments.map((appointment) => (
-                  <div key={appointment.id} className="flex justify-between items-center p-3 border rounded-lg">
-                    <div className="space-y-1">
+                  <div 
+                    key={appointment.id} 
+                    className="flex justify-between items-center p-3 border rounded-lg cursor-pointer hover:bg-accent/50 transition-colors"
+                    onClick={() => openDetailDialog(appointment)}
+                  >
+                    <div className="space-y-1 flex-1">
                       <div className="flex items-center space-x-2">
                         <span className="font-medium">{appointment.appointment_time}</span>
                         <span>-</span>
@@ -452,19 +486,21 @@ export default function CalendarPage() {
                         </p>
                       )}
                     </div>
-                    <Select
-                      value={appointment.status}
-                      onValueChange={(newStatus) => updateAppointmentStatus(appointment.id, newStatus)}
-                    >
-                      <SelectTrigger className="w-auto">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(statusLabels).map(([value, label]) => (
-                          <SelectItem key={value} value={value}>{label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center space-x-2">
+                      <Select
+                        value={appointment.status}
+                        onValueChange={(newStatus) => updateAppointmentStatus(appointment.id, newStatus)}
+                      >
+                        <SelectTrigger className="w-auto" onClick={(e) => e.stopPropagation()}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(statusLabels).map(([value, label]) => (
+                            <SelectItem key={value} value={value}>{label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -472,6 +508,97 @@ export default function CalendarPage() {
           })()}
         </CardContent>
       </Card>
+
+      {/* Appointment Detail Dialog */}
+      <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Detalle de la Cita</DialogTitle>
+          </DialogHeader>
+          {selectedAppointment && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Cliente</Label>
+                  <p className="text-sm">{selectedAppointment.clients.name}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Teléfono</Label>
+                  <p className="text-sm">{selectedAppointment.clients.phone || 'No especificado'}</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Fecha</Label>
+                  <p className="text-sm">{new Date(selectedAppointment.appointment_date).toLocaleDateString('es-ES')}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Hora</Label>
+                  <p className="text-sm">{selectedAppointment.appointment_time}</p>
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">Categoría de Trabajo</Label>
+                <p className="text-sm">{selectedAppointment.works.work_categories.name}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Precio</Label>
+                  <p className="text-sm">${selectedAppointment.works.price}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Estado del Trabajo</Label>
+                  <p className="text-sm capitalize">{selectedAppointment.works.status.replace('_', ' ')}</p>
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">Estado de la Cita</Label>
+                <div className="mt-1">
+                  <Badge variant={statusColors[selectedAppointment.status as keyof typeof statusColors] as any}>
+                    {statusLabels[selectedAppointment.status as keyof typeof statusLabels]}
+                  </Badge>
+                </div>
+              </div>
+
+              {selectedAppointment.notes && (
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Notas</Label>
+                  <p className="text-sm bg-muted p-2 rounded">{selectedAppointment.notes}</p>
+                </div>
+              )}
+
+              <div className="flex justify-end space-x-2 pt-4 border-t">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsDetailDialogOpen(false)}
+                >
+                  Cerrar
+                </Button>
+                <Select
+                  value={selectedAppointment.status}
+                  onValueChange={(newStatus) => {
+                    updateAppointmentStatus(selectedAppointment.id, newStatus);
+                    setSelectedAppointment(prev => prev ? {...prev, status: newStatus} : null);
+                  }}
+                >
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Cambiar estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(statusLabels).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
