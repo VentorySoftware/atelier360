@@ -1,9 +1,10 @@
-import { Toaster } from "@/components/ui/toaster";
+la oimport { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "next-themes";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import EditWork from "./pages/EditWork"; // Importar el componente EditWork desde la ruta correcta
 import { Layout } from "@/components/Layout";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="/categories" element={<Layout><Categories /></Layout>} />
             <Route path="/calendar" element={<Layout><CalendarPage /></Layout>} />
             <Route path="/workshop-info" element={<Layout><WorkshopInfo /></Layout>} /> {/* New route for WorkshopInfo */}
+            <Route path="/edit-work/:id" element={<Layout><EditWork /></Layout>} /> {/* Ruta para editar trabajo */}
             <Route path="/users" element={<Layout><div>Usuarios - Próximamente</div></Layout>} />
             <Route path="*" element={<NotFound />} />
           </Routes>

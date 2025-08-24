@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import AppointmentForm from '@/components/AppointmentForm';
+import QuickClientForm from '@/components/QuickClientForm';
 
 interface Client {
   id: string;
@@ -239,14 +241,19 @@ export default function CreateWork() {
                   ))}
                 </SelectContent>
               </Select>
-              {clients.length === 0 && (
+              <div className="flex items-center">
                 <p className="text-sm text-muted-foreground">
-                  No hay clientes disponibles. 
-                  <Button variant="link" className="h-auto p-0 ml-1" onClick={() => navigate('/clients')}>
-                    Crear nuevo cliente
-                  </Button>
+                  ¿No encuentras al cliente?
                 </p>
-              )}
+                <QuickClientForm 
+                  onClientCreated={(client) => {
+                    // Agregar el nuevo cliente a la lista local
+                    setClients(prevClients => [...prevClients, client]);
+                    // Seleccionar automáticamente el nuevo cliente
+                    setFormData({ ...formData, client_id: client.id });
+                  }} 
+                />
+              </div>
             </div>
 
             {/* Categoría */}
@@ -383,35 +390,19 @@ export default function CreateWork() {
                   <User className="h-4 w-4 text-primary" />
                   <Label className="text-base font-medium">Cita con el cliente *</Label>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="appointment_date">Fecha de la cita</Label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="appointment_date"
-                        type="date"
-                        className="pl-10"
-                        value={formData.appointment_date}
-                        onChange={(e) => setFormData({ ...formData, appointment_date: e.target.value })}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="appointment_time">Hora de la cita</Label>
-                    <Input
-                      id="appointment_time"
-                      type="time"
-                      value={formData.appointment_time}
-                      onChange={(e) => setFormData({ ...formData, appointment_time: e.target.value })}
-                      required
-                    />
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Esta categoría requiere una cita con el cliente. La cita será visible en el calendario.
-                </p>
+                <AppointmentForm
+                  workId={formData.client_id}
+                  clientId={formData.client_id}
+                  onAppointmentCreated={(appointmentData) => {
+                    // Actualizar el formulario con los datos de la cita
+                    setFormData({
+                      ...formData,
+                      appointment_date: appointmentData.appointment_date,
+                      appointment_time: appointmentData.appointment_time
+                    });
+                  }}
+                  onCancel={() => setFormData({ ...formData, appointment_date: '', appointment_time: '' })}
+                />
               </div>
             )}
 

@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit, Trash2, ClipboardList, Eye, Calendar, DollarSign, User, Tag, X, CheckCircle, Clock, Package, Truck } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, ClipboardList, Eye, Calendar, DollarSign, User, Tag, Clock, Package, CheckCircle, Truck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -63,8 +61,6 @@ export default function Works() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [loading, setLoading] = useState(true);
-  const [selectedWork, setSelectedWork] = useState<Work | null>(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -212,13 +208,7 @@ const updateWorkStatus = async (workId: string, newStatus: string, clientPhone: 
   };
 
   const openDetailModal = (work: Work) => {
-    setSelectedWork(work);
-    setIsDetailModalOpen(true);
-  };
-
-  const closeDetailModal = () => {
-    setSelectedWork(null);
-    setIsDetailModalOpen(false);
+    navigate(`/works/${work.id}`);
   };
 
   const filteredWorks = works.filter(work => {
@@ -440,214 +430,6 @@ const updateWorkStatus = async (workId: string, newStatus: string, clientPhone: 
           ))}
         </div>
       )}
-
-      {/* Modal de Detalles del Trabajo */}
-      <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto bg-gradient-card">
-          <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2 text-responsive-xl text-gradient">
-              <ClipboardList className="h-6 w-6" />
-              <span>Detalles del Trabajo</span>
-            </DialogTitle>
-            <DialogDescription className="text-responsive-base">
-              Información completa del trabajo seleccionado
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedWork && (
-            <div className="space-y-6">
-              {/* Barra de Progreso */}
-              {(() => {
-                const progressData = getWorkProgress(selectedWork.status);
-                return (
-                  <Card className="card-elegant bg-gradient-card-hover">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-responsive-sm text-gradient">Estado del Trabajo</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {progressData.isCancelled ? (
-                        <div className="text-center">
-                          <Badge variant="destructive" className="text-responsive-sm px-4 py-2 shadow-danger">
-                            Trabajo Cancelado
-                          </Badge>
-                        </div>
-                      ) : (
-                        <>
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-responsive-sm font-medium text-gradient">Progreso</span>
-                            <span className="text-responsive-sm text-muted-foreground">{progressData.progress}%</span>
-                          </div>
-                          <Progress value={progressData.progress} className="h-2 bg-gradient-primary" />
-                          
-                          {/* Iconos de pasos */}
-                          <div className="flex justify-between items-center mt-4 px-2">
-                            {progressData.steps.map((step, index) => {
-                              const Icon = step.icon;
-                              const isCompleted = index <= progressData.currentStep;
-                              const isCurrent = index === progressData.currentStep;
-                              
-                              return (
-                                <div key={step.key} className="flex flex-col items-center space-y-1 flex-1">
-                                  <div className={`p-1.5 md:p-2 rounded-full border-2 transition-smooth ${
-                                    isCompleted 
-                                      ? 'bg-gradient-primary border-primary text-primary-foreground shadow-elegant' 
-                                      : 'bg-muted border-muted-foreground/20 text-muted-foreground'
-                                  } ${isCurrent ? 'ring-2 ring-primary ring-offset-2 pulse' : ''}`}>
-                                    <Icon className="h-2.5 w-2.5 md:h-3 md:w-3" />
-                                  </div>
-                                  <span className={`text-[10px] md:text-xs text-center max-w-[50px] md:max-w-[60px] leading-tight transition-smooth ${
-                                    isCompleted ? 'text-gradient font-medium' : 'text-muted-foreground'
-                                  }`}>
-                                    {step.label}
-                                  </span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })()}
-
-              {/* Información del Cliente y Fechas */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-responsive">
-                <Card className="card-elegant bg-gradient-card-hover">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-responsive-sm flex items-center space-x-2 text-gradient">
-                      <User className="h-4 w-4" />
-                      <span>Cliente</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div>
-                      <p className="font-medium text-gradient">{selectedWork.clients.name}</p>
-                      {selectedWork.clients.phone && (
-                        <div className="space-y-2">
-                          <p className="text-responsive-sm text-muted-foreground flex items-center space-x-1">
-                            <span>📞</span>
-                            <span>{selectedWork.clients.phone}</span>
-                          </p>
-                          <a
-                            href={`https://wa.me/${selectedWork.clients.phone.replace(/\D/g, '')}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center text-green-600 hover:text-green-700 transition-colors text-responsive-sm"
-                          >
-                            <svg className="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.864 3.488"/>
-                            </svg>
-                            Enviar mensaje por WhatsApp
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Fechas debajo de la información del cliente */}
-                    <div className="pt-2 border-t space-y-2">
-                      <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">Entrada:</span>
-                        <span className="font-medium">{new Date(selectedWork.entry_date).toLocaleDateString()}</span>
-                      </div>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">Entrega:</span>
-                        <span className={`font-medium ${isOverdue(selectedWork) ? 'text-destructive' : ''}`}>
-                          {new Date(selectedWork.tentative_delivery_date).toLocaleDateString()}
-                          {isOverdue(selectedWork) && <span className="ml-1 text-destructive">⚠️</span>}
-                        </span>
-                      </div>
-                      {selectedWork.actual_delivery_date && (
-                        <div className="flex justify-between text-xs">
-                          <span className="text-muted-foreground">Entregado:</span>
-                          <span className="font-medium text-green-600">
-                            {new Date(selectedWork.actual_delivery_date).toLocaleDateString()}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm flex items-center space-x-2">
-                      <Tag className="h-4 w-4" />
-                      <span>Categoría</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="font-medium">{selectedWork.work_categories.name}</p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Información Financiera - Más compacta y en una línea */}
-              <Card className="border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-900/10">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm flex items-center space-x-2 text-green-700 dark:text-green-300">
-                    <DollarSign className="h-4 w-4" />
-                    <span>Información Financiera</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-3 gap-2 md:gap-4">
-                    <div className="text-center p-2 md:p-3 bg-white dark:bg-gray-800 rounded-lg border">
-                      <span className="text-[10px] md:text-xs text-muted-foreground block mb-1">Total:</span>
-                      <p className="text-sm md:text-lg font-bold text-green-600">{formatCurrency(selectedWork.price)}</p>
-                    </div>
-                    <div className="text-center p-2 md:p-3 bg-white dark:bg-gray-800 rounded-lg border">
-                      <span className="text-[10px] md:text-xs text-muted-foreground block mb-1">Depósito:</span>
-                      <p className="text-sm md:text-lg font-bold text-blue-600">{formatCurrency(selectedWork.deposit_amount)}</p>
-                      <Badge variant="outline" className="mt-1 text-[9px] md:text-xs px-1 py-0">
-                        {depositStatusLabels[selectedWork.deposit_status as keyof typeof depositStatusLabels]}
-                      </Badge>
-                    </div>
-                    <div className="text-center p-2 md:p-3 bg-white dark:bg-gray-800 rounded-lg border">
-                      <span className="text-[10px] md:text-xs text-muted-foreground block mb-1">Saldo:</span>
-                      <p className="text-sm md:text-lg font-bold text-orange-600">
-                        {formatCurrency(selectedWork.price - selectedWork.deposit_amount)}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Notas */}
-              {selectedWork.notes && (
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm">Notas</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm whitespace-pre-wrap">{selectedWork.notes}</p>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Información de Creación */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">Información de Registro</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    Creado el: {new Date(selectedWork.created_at).toLocaleDateString()} a las {new Date(selectedWork.created_at).toLocaleTimeString()}
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {/* Botón de Cerrar */}
-          <div className="flex justify-end pt-6 border-t bg-gray-50 dark:bg-gray-800 -mx-6 -mb-6 px-6 py-4 rounded-b-lg">
-            <Button onClick={closeDetailModal} variant="outline" size="lg" className="min-w-[120px]">
-              <X className="h-4 w-4 mr-2" />
-              Cerrar
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
