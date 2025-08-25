@@ -42,7 +42,11 @@ const adminItems = [
   { title: 'Información del Taller', url: '/workshop-info', icon: Settings },
 ];
 
-export function AppSidebar() {
+interface AppSidebarProps {
+  onLogout?: () => void;
+}
+
+export function AppSidebar({ onLogout }: AppSidebarProps) {
   const { state } = useSidebar();
   const location = useLocation();
   const { signOut, user } = useAuth();
@@ -55,19 +59,24 @@ export function AppSidebar() {
     isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium' : 'hover:bg-sidebar-accent/50';
 
   const handleSignOut = async () => {
-    const { error } = await signOut();
-    if (error) {
-      toast({
-        title: 'Error',
-        description: 'No se pudo cerrar sesión',
-        variant: 'destructive'
-      });
-    } else {
-      toast({
-        title: 'Sesión cerrada',
-        description: 'Hasta pronto'
-      });
-    }
+    onLogout?.(); // Trigger logout animation
+    
+    // Delay actual signout to allow animation
+    setTimeout(async () => {
+      const { error } = await signOut();
+      if (error) {
+        toast({
+          title: 'Error',
+          description: 'No se pudo cerrar sesión',
+          variant: 'destructive'
+        });
+      } else {
+        toast({
+          title: 'Sesión cerrada',
+          description: 'Hasta pronto'
+        });
+      }
+    }, 100);
   };
 
   return (
@@ -134,9 +143,9 @@ export function AppSidebar() {
             variant="ghost"
             size="sm"
             onClick={handleSignOut}
-            className={`${collapsed ? 'w-full' : 'flex-1'} justify-start text-sidebar-foreground hover:bg-sidebar-accent`}
+            className={`${collapsed ? 'w-full' : 'flex-1'} justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:shadow-glow transition-all duration-300 group`}
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-4 w-4 group-hover:animate-bounce" />
             {!collapsed && <span className="ml-2">Cerrar Sesión</span>}
           </Button>
         </div>

@@ -1,8 +1,9 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { useAuth } from '@/hooks/useAuth';
+import { LogoutAnimation } from '@/components/LogoutAnimation';
 
 interface LayoutProps {
   children: ReactNode;
@@ -10,6 +11,7 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   const { user, loading } = useAuth();
+  const [showLogoutAnimation, setShowLogoutAnimation] = useState(false);
 
   if (loading) {
     return (
@@ -27,22 +29,31 @@ export function Layout({ children }: LayoutProps) {
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-dashboard">
-        <AppSidebar />
-        
-        <div className="flex-1 flex flex-col">
-          <header className="h-14 flex items-center justify-between border-b border-border bg-gradient-card shadow-soft px-4 transition-smooth">
-            <SidebarTrigger className="hover-scale" />
-          </header>
+    <>
+      <LogoutAnimation 
+        isVisible={showLogoutAnimation} 
+        onComplete={() => setShowLogoutAnimation(false)} 
+      />
+      <SidebarProvider>
+        <div className="min-h-screen flex w-full bg-gradient-dashboard">
+          <AppSidebar onLogout={() => setShowLogoutAnimation(true)} />
           
-          <main className="flex-1 p-responsive">
-            <div className="animate-fade-in">
-              {children}
-            </div>
-          </main>
+          <div className="flex-1 flex flex-col">
+            <header className="h-14 flex items-center justify-between border-b border-border bg-gradient-card shadow-soft px-4 transition-smooth">
+              <SidebarTrigger className="hover-scale" />
+              <div className="text-sm text-muted-foreground animate-welcome-pulse">
+                ¡Bienvenido a Atelier360!
+              </div>
+            </header>
+            
+            <main className="flex-1 p-responsive">
+              <div className="animate-fade-in">
+                {children}
+              </div>
+            </main>
+          </div>
         </div>
-      </div>
-    </SidebarProvider>
+      </SidebarProvider>
+    </>
   );
 }

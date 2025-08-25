@@ -8,11 +8,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { LoginAnimation } from '@/components/LoginAnimation';
 
 const Auth = () => {
   const { user, signIn, signUp, loading } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [showLoginAnimation, setShowLoginAnimation] = useState(false);
 
   // Redirect if already authenticated
   if (user && !loading) {
@@ -36,6 +38,7 @@ const Auth = () => {
         variant: 'destructive'
       });
     } else {
+      setShowLoginAnimation(true);
       toast({
         title: 'Sesión iniciada',
         description: 'Bienvenido a Atelier360'
@@ -84,16 +87,31 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md relative">
+    <>
+      <LoginAnimation 
+        isVisible={showLoginAnimation} 
+        onComplete={() => setShowLoginAnimation(false)} 
+      />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-dashboard p-4 relative overflow-hidden">
+        {/* Background animated elements */}
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-primary/20 rounded-full animate-breathing-slow blur-xl" />
+          <div className="absolute bottom-1/3 right-1/4 w-24 h-24 bg-secondary/20 rounded-full animate-breathing-slower blur-lg" />
+          <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-accent/30 rounded-full animate-float blur-sm" />
+        </div>
+
+        <Card className="w-full max-w-md relative z-10 animate-[loginAppear_1.2s_cubic-bezier(0.4,0,0.2,1)] shadow-elegant border-border/50 backdrop-blur-sm bg-card/95">
         <div className="absolute top-4 right-4">
           <ThemeToggle />
         </div>
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Atelier360</CardTitle>
-          <CardDescription>
+        <CardHeader className="text-center relative">
+          <CardTitle className="text-3xl font-bold text-gradient animate-[morphingBorder_4s_ease-in-out_infinite]">
+            Atelier360
+          </CardTitle>
+          <CardDescription className="text-muted-foreground/80">
             Sistema de gestión para talleres de costura
           </CardDescription>
+          <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary/10 via-transparent to-secondary/10 rounded-t-xl animate-[shimmerGlow_3s_linear_infinite]" />
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
@@ -126,10 +144,13 @@ const Auth = () => {
                 </div>
                 <Button 
                   type="submit" 
-                  className="w-full" 
+                  className="w-full relative overflow-hidden group hover:shadow-glow transition-all duration-300" 
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+                  <span className="relative z-10">
+                    {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
                 </Button>
               </form>
             </TabsContent>
@@ -169,22 +190,27 @@ const Auth = () => {
                 </div>
                 <Button 
                   type="submit" 
-                  className="w-full" 
+                  className="w-full relative overflow-hidden group hover:shadow-glow transition-all duration-300" 
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Registrando...' : 'Registrarse'}
+                  <span className="relative z-10">
+                    {isLoading ? 'Registrando...' : 'Registrarse'}
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
                 </Button>
               </form>
             </TabsContent>
           </Tabs>
-</CardContent>
-        <div className="text-center mt-4 text-sm text-gray-500">
-<div className="text-center mt-4 text-lg font-bold text-gray-900 dark:text-gray-100 shadow-lg p-2 rounded-md bg-gradient-to-r from-blue-500 to-purple-500 transition duration-300 hover:scale-105 animate-[slide-up 1s ease-in-out infinite]">
-            Developed by Ventory
+          
+          <div className="text-center mt-4 p-3 rounded-lg bg-gradient-to-r from-primary/10 to-secondary/10 border border-border/50">
+            <div className="text-sm font-semibold text-foreground/70 animate-welcome-pulse">
+              Developed by Ventory
+            </div>
           </div>
-        </div>
+        </CardContent>
       </Card>
-    </div>
+      </div>
+    </>
   );
 };
 
