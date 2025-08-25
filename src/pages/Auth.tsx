@@ -15,9 +15,10 @@ const Auth = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showLoginAnimation, setShowLoginAnimation] = useState(false);
+  const [allowRedirect, setAllowRedirect] = useState(false);
 
-  // Redirect if already authenticated
-  if (user && !loading) {
+  // Redirect if already authenticated and animation is complete
+  if (user && !loading && allowRedirect) {
     return <Navigate to="/" replace />;
   }
 
@@ -43,6 +44,11 @@ const Auth = () => {
         title: 'Sesión iniciada',
         description: 'Bienvenido a Atelier360'
       });
+      
+      // Allow redirect after animation completes
+      setTimeout(() => {
+        setAllowRedirect(true);
+      }, 1500);
     }
     
     setIsLoading(false);
@@ -70,6 +76,7 @@ const Auth = () => {
         title: 'Registro exitoso',
         description: 'Revisa tu email para confirmar tu cuenta'
       });
+      // Note: For signup, we don't redirect immediately as user needs to confirm email
     }
     
     setIsLoading(false);

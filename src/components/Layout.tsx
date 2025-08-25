@@ -1,9 +1,10 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { useAuth } from '@/hooks/useAuth';
 import { LogoutAnimation } from '@/components/LogoutAnimation';
+import { LoginAnimation } from '@/components/LoginAnimation';
 
 interface LayoutProps {
   children: ReactNode;
@@ -12,6 +13,15 @@ interface LayoutProps {
 export function Layout({ children }: LayoutProps) {
   const { user, loading } = useAuth();
   const [showLogoutAnimation, setShowLogoutAnimation] = useState(false);
+  const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(false);
+
+  useEffect(() => {
+    if (user && !loading) {
+      // Show welcome animation when user first enters the system
+      setShowWelcomeAnimation(true);
+      setTimeout(() => setShowWelcomeAnimation(false), 1200);
+    }
+  }, [user, loading]);
 
   if (loading) {
     return (
@@ -33,6 +43,10 @@ export function Layout({ children }: LayoutProps) {
       <LogoutAnimation 
         isVisible={showLogoutAnimation} 
         onComplete={() => setShowLogoutAnimation(false)} 
+      />
+      <LoginAnimation 
+        isVisible={showWelcomeAnimation} 
+        onComplete={() => setShowWelcomeAnimation(false)} 
       />
       <SidebarProvider>
         <div className="min-h-screen flex w-full bg-gradient-dashboard">
