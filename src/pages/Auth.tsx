@@ -8,17 +8,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { LoginAnimation } from '@/components/LoginAnimation';
 
 const Auth = () => {
   const { user, signIn, signUp, loading } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [showLoginAnimation, setShowLoginAnimation] = useState(false);
-  const [allowRedirect, setAllowRedirect] = useState(false);
 
-  // Redirect if already authenticated and animation is complete
-  if (user && !loading && allowRedirect) {
+  // Redirect if already authenticated
+  if (user && !loading) {
     return <Navigate to="/" replace />;
   }
 
@@ -39,16 +36,10 @@ const Auth = () => {
         variant: 'destructive'
       });
     } else {
-      setShowLoginAnimation(true);
       toast({
         title: 'Sesión iniciada',
         description: 'Bienvenido a Atelier360'
       });
-      
-      // Allow redirect after animation completes
-      setTimeout(() => {
-        setAllowRedirect(true);
-      }, 1500);
     }
     
     setIsLoading(false);
@@ -94,12 +85,7 @@ const Auth = () => {
   }
 
   return (
-    <>
-      <LoginAnimation 
-        isVisible={showLoginAnimation} 
-        onComplete={() => setShowLoginAnimation(false)} 
-      />
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md relative">
           <div className="absolute top-4 right-4">
             <ThemeToggle />
@@ -198,8 +184,7 @@ const Auth = () => {
           </div>
         </CardContent>
       </Card>
-      </div>
-    </>
+    </div>
   );
 };
 
