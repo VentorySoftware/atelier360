@@ -237,21 +237,25 @@ const WorkDetail: React.FC = () => {
           label: 'Iniciar trabajo',
           targetStatus: 'in_progress',
           variant: 'default' as const,
-          className: 'bg-gradient-primary hover-scale'
+          className: 'bg-gradient-primary'
         });
         break;
       
       case 'in_progress':
-        // No mostrar botones para estado "En Progreso"
+        actions.push({
+          label: 'Completado',
+          targetStatus: 'completed',
+          variant: 'default' as const,
+          className: 'bg-gradient-success'
+        });
         break;
-      
       
       case 'completed':
         actions.push({
           label: 'Entregado',
           targetStatus: 'delivered',
           variant: 'default' as const,
-          className: 'bg-gradient-success hover-scale'
+          className: 'bg-gradient-success'
         });
         break;
       
@@ -262,6 +266,16 @@ const WorkDetail: React.FC = () => {
       
       default:
         break;
+    }
+
+    // Siempre agregar botón de Cancelar, excepto en estados finales
+    if (currentStatus !== 'delivered' && currentStatus !== 'cancelled') {
+      actions.push({
+        label: 'Cancelar',
+        targetStatus: 'cancelled',
+        variant: 'destructive' as const,
+        className: ''
+      });
     }
 
     return actions;

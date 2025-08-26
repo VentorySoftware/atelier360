@@ -169,6 +169,10 @@ All colors MUST be HSL.
   .bg-gradient-subtle {
     background: var(--gradient-subtle);
   }
+
+  .bg-gradient-success {
+    background: linear-gradient(135deg, hsl(var(--success)), hsl(var(--success) / 0.8));
+  }
   
   .shadow-soft {
     box-shadow: var(--shadow-soft);
