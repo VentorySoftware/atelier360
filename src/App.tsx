@@ -16,6 +16,7 @@ import CreateWork from "./pages/CreateWork";
 import CalendarPage from "./pages/CalendarPage";
 import WorkDetail from "./pages/WorkDetail";
 import WorkshopInfo from "./pages/WorkshopInfo"; // Import the new component
+import Users from "./pages/Users";
 
 const queryClient = new QueryClient();
 
@@ -43,7 +44,7 @@ const App = () => (
             <Route path="/calendar" element={<Layout><CalendarPage /></Layout>} />
             <Route path="/workshop-info" element={<Layout><WorkshopInfo /></Layout>} /> {/* New route for WorkshopInfo */}
             <Route path="/edit-work/:id" element={<Layout><EditWork /></Layout>} /> {/* Ruta para editar trabajo */}
-            <Route path="/users" element={<Layout><div>Usuarios - Próximamente</div></Layout>} />
+            <Route path="/users" element={<Layout><Users /></Layout>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

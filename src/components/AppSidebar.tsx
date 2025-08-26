@@ -38,7 +38,7 @@ const mainItems = [
 ];
 
 const adminItems = [
-  { title: 'Usuarios', url: '/users', icon: Settings },
+  { title: 'Usuarios', url: '/users', icon: Users },
   { title: 'Información del Taller', url: '/workshop-info', icon: Settings },
 ];
 
