@@ -350,7 +350,7 @@ const WorkDetail: React.FC = () => {
       const tieneSaldo = saldoPendiente > 0;
 
       // Construir el mensaje de WhatsApp
-      const message = `*¡Hola! Su trabajo está completado!*\n\n` +
+      const message = `*¡Hola ${work.clients.name}! Su trabajo está completado!*\n\n` +
                      `✨ *Detalles del trabajo:*\n` +
                      `🆔 *ID:* ${work.id}\n` +
                      `📦 *Categoría:* ${work.work_categories.name}\n` +
@@ -366,7 +366,7 @@ const WorkDetail: React.FC = () => {
                        workshopInfo.saturday.timeRanges.map(range => `${range.start} - ${range.end}`).join(', ') : 'No disponible'}\n` +
                      `📆 *Domingos:* ${workshopInfo.sunday?.timeRanges?.length > 0 ? 
                        workshopInfo.sunday.timeRanges.map(range => `${range.start} - ${range.end}`).join(', ') : 'No disponible'}\n` +
-                     `🎊 *Feriados:* ${workshopInfo.holidays?.timeRanges?.length > 0 ? 
+                     `🎉 *Feriados:* ${workshopInfo.holidays?.timeRanges?.length > 0 ? 
                        workshopInfo.holidays.timeRanges.map(range => `${range.start} - ${range.end}`).join(', ') : 'No disponible'}\n\n` +
                      `${workshopInfo.reference ? `🗺️ *Referencias:*\n${workshopInfo.reference}\n\n` : ''}` +
                      `📱 *Cualquier consulta no dudes en comunicarte*\n\n` +
