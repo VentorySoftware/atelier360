@@ -35,7 +35,6 @@ interface Work {
 const statusLabels = {
   pending: 'Pendiente',
   in_progress: 'En Progreso',
-  waiting_parts: 'Esperando Piezas',
   completed: 'Completado',
   delivered: 'Entregado',
   cancelled: 'Cancelado'
@@ -44,7 +43,6 @@ const statusLabels = {
 const statusColors = {
   pending: 'secondary',
   in_progress: 'default',
-  waiting_parts: 'outline',
   completed: 'secondary',
   delivered: 'default',
   cancelled: 'destructive'
@@ -232,9 +230,8 @@ const updateWorkStatus = async (workId: string, newStatus: string, clientPhone: 
   const getWorkProgress = (status: string) => {
     const steps = [
       { key: 'pending', label: 'Pendiente', icon: Clock, progress: 0 },
-      { key: 'in_progress', label: 'En Progreso', icon: ClipboardList, progress: 25 },
-      { key: 'waiting_parts', label: 'Esperando Piezas', icon: Package, progress: 50 },
-      { key: 'completed', label: 'Completado', icon: CheckCircle, progress: 75 },
+      { key: 'in_progress', label: 'En Progreso', icon: ClipboardList, progress: 33 },
+      { key: 'completed', label: 'Completado', icon: CheckCircle, progress: 67 },
       { key: 'delivered', label: 'Entregado', icon: Truck, progress: 100 }
     ];
 

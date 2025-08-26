@@ -23,7 +23,6 @@ import AppointmentForm from '@/components/AppointmentForm';
 const statusLabels = {
   pending: 'Pendiente',
   in_progress: 'En Progreso',
-  waiting_parts: 'Esperando Piezas',
   completed: 'Completado',
   delivered: 'Entregado',
   cancelled: 'Cancelado'
@@ -32,7 +31,6 @@ const statusLabels = {
 const statusColors = {
   pending: 'secondary',
   in_progress: 'default',
-  waiting_parts: 'outline',
   completed: 'secondary',
   delivered: 'default',
   cancelled: 'destructive'
@@ -230,13 +228,51 @@ const WorkDetail: React.FC = () => {
     }
   };
 
+  const getStatusActions = (currentStatus: string) => {
+    const actions = [];
+
+    switch (currentStatus) {
+      case 'pending':
+        actions.push({
+          label: 'Iniciar trabajo',
+          targetStatus: 'in_progress',
+          variant: 'default' as const,
+          className: 'bg-gradient-primary hover-scale'
+        });
+        break;
+      
+      case 'in_progress':
+        // No mostrar botones para estado "En Progreso"
+        break;
+      
+      
+      case 'completed':
+        actions.push({
+          label: 'Entregado',
+          targetStatus: 'delivered',
+          variant: 'default' as const,
+          className: 'bg-gradient-success hover-scale'
+        });
+        break;
+      
+      case 'delivered':
+      case 'cancelled':
+        // No mostrar botones para estados finales
+        break;
+      
+      default:
+        break;
+    }
+
+    return actions;
+  };
+
 
   const getWorkProgress = (status: string) => {
     const steps = [
       { key: 'pending', label: 'Pendiente', icon: Clock, progress: 0 },
-      { key: 'in_progress', label: 'En Progreso', icon: ClipboardList, progress: 25 },
-      { key: 'waiting_parts', label: 'Esperando Piezas', icon: Package, progress: 50 },
-      { key: 'completed', label: 'Completado', icon: CheckCircle, progress: 75 },
+      { key: 'in_progress', label: 'En Progreso', icon: ClipboardList, progress: 33 },
+      { key: 'completed', label: 'Completado', icon: CheckCircle, progress: 67 },
       { key: 'delivered', label: 'Entregado', icon: Truck, progress: 100 }
     ];
 
@@ -601,16 +637,19 @@ const WorkDetail: React.FC = () => {
                       >
                         {statusLabels[work.status as keyof typeof statusLabels]}
                       </Badge>
-                      <Select value={work.status} onValueChange={updateWorkStatus}>
-                        <SelectTrigger className="w-auto h-8 hover-scale transition-smooth">
-                          <Edit className="h-3 w-3" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(statusLabels).map(([value, label]) => (
-                            <SelectItem key={value} value={value}>{label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="flex space-x-2">
+                        {getStatusActions(work.status).map((action, index) => (
+                          <Button
+                            key={index}
+                            variant={action.variant}
+                            onClick={() => updateWorkStatus(action.targetStatus)}
+                            className={action.className}
+                            size="sm"
+                          >
+                            {action.label}
+                          </Button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                   
