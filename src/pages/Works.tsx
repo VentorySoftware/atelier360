@@ -123,7 +123,7 @@ const updateWorkStatus = async (workId: string, newStatus: string, clientPhone: 
             // Depuración: mostrar la estructura de workshopInfo
             console.log('Datos del taller:', workshopInfo);
             
-            const message = `🎉 *¡Hola! Su trabajo está completado* 🎉\n\n` +
+            const message = `🎉 *¡Hola ${work.clients.name}! Su trabajo está completado* 🎉\n\n` +
                            `✨ *Detalles del trabajo:*\n` +
                            `🆔 *ID:* ${workId}\n` +
                            `📦 *Categoría:* ${work.work_categories.name}\n` +
