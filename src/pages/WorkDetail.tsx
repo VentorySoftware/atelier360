@@ -498,93 +498,9 @@ const WorkDetail: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Información del Cliente y Trabajo */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="card-elegant bg-gradient-card-hover">
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <User className="h-5 w-5" />
-                    <span>Cliente</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <p className="font-semibold text-lg text-gradient">{work.clients.name}</p>
-                    {work.clients.phone && (
-                      <div className="space-y-3 mt-3">
-                        <div className="flex items-center space-x-2 text-muted-foreground">
-                          <Phone className="h-4 w-4" />
-                          <span>{work.clients.phone}</span>
-                        </div>
-                        <a
-                          href={`https://wa.me/${work.clients.phone.replace(/\D/g, '')}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center text-green-600 hover:text-green-700 transition-colors text-sm"
-                        >
-                          <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.极狐汽车57-.347"/>
-                          </svg>
-                          Enviar WhatsApp
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="card-elegant bg-gradient-card-hover">
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Tag className="h-5 w-5" />
-                    <span>Trabajo</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <p className="font-semibold text-gradient">{work.work_categories.name}</p>
-                    <div className="flex items-center space-x-2 mt-3">
-                      <Badge 
-                        variant={statusColors[work.status as keyof typeof statusColors] as any} 
-                        className="shadow-elegant"
-                      >
-                        {statusLabels[work.status as keyof typeof statusLabels]}
-                      </Badge>
-                      <Select value={work.status} onValueChange={updateWorkStatus}>
-                        <SelectTrigger className="w-auto h-8 hover-scale transition-smooth">
-                          <Edit className="h-3 w-3" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(statusLabels).map(([value, label]) => (
-                            <SelectItem key={value} value={value}>{label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center space-x-2 text-muted-foreground">
-                      <Calendar className="h-4 w-4" />
-                      <span>Entrada: {new Date(work.entry_date).toLocaleDateString()}</span>
-                    </div>
-                    <div className={`flex items-center space-x-2 ${overdue ? 'text-destructive' : 'text-muted-foreground'}`}>
-                      <Calendar className="h-4 w-4" />
-                      <span>
-                        Entrega: {new Date(work.tentative_delivery_date).toLocaleDateString()}
-                        {overdue && ' ⚠️ Retrasado'}
-                      </span>
-                    </div>
-                    {work.actual_delivery_date && (
-                      <div className="flex items-center space-x-2 text-green-600">
-                        <Calendar className="h-4 w-4" />
-                        <span>Entregado: {new Date(work.actual_delivery_date).toLocaleDateString()}</span>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+              {/* Información del Cliente y Trabajo */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              </div>
 
             {/* Notas */}
             <Card className="card-elegant bg-gradient-card-hover">
