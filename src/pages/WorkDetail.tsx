@@ -11,7 +11,8 @@ import { Button } from '@/components/ui/button';
 import { 
   ArrowLeft, User, Tag, Calendar, DollarSign, Phone, Edit, 
   ClipboardList, Clock, Package, CheckCircle, Truck, X, 
-  Plus, Save, FileText, TrendingUp, Clock4, CalendarCheck
+  Plus, Save, FileText, TrendingUp, Clock4, CalendarCheck,
+  MessageCircle
 } from 'lucide-react';
 import { 
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
@@ -330,6 +331,70 @@ const WorkDetail: React.FC = () => {
     return statusColors[status as keyof typeof statusColors] || 'secondary';
   };
 
+  const notifyClient = () => {
+    if (!work || !work.clients.phone) {
+      toast({
+        title: 'Error',
+        description: 'No se puede notificar al cliente sin número de teléfono',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    try {
+      // Obtener información del taller desde localStorage
+      const workshopInfo = JSON.parse(localStorage.getItem('workshopInfo') || '{}');
+      
+      // Calcular saldo pendiente
+      const saldoPendiente = work.price - work.deposit_amount;
+      const tieneSaldo = saldoPendiente > 0;
+
+      // Construir el mensaje de WhatsApp
+      const message = `*¡Hola! Su trabajo está completado!*\n\n` +
+                     `✨ *Detalles del trabajo:*\n` +
+                     `🆔 *ID:* ${work.id}\n` +
+                     `📦 *Categoría:* ${work.work_categories.name}\n` +
+                     `💰 *Precio total:* ${formatCurrency(work.price)}\n` +
+                     `💵 *Seña abonada:* ${formatCurrency(work.deposit_amount)}\n` +
+                     `${tieneSaldo ? `📋 *Saldo pendiente:* ${formatCurrency(saldoPendiente)}\n` : '✅ *Pago completo*\n'}\n` +
+                     `🏢 *Dirección del taller:*\n` +
+                     `📍 ${workshopInfo.street || ''} ${workshopInfo.number || ''}, ${workshopInfo.neighborhood || ''}, ${workshopInfo.city || ''}, ${workshopInfo.province || ''}\n\n` +
+                     `⏰ *Horarios de atención:*\n` +
+                     `📅 *Lunes a Viernes:* ${workshopInfo.weekdays?.timeRanges?.length > 0 ? 
+                       workshopInfo.weekdays.timeRanges.map(range => `${range.start} - ${range.end}`).join(', ') : 'No disponible'}\n` +
+                     `🗓️ *Sábados:* ${workshopInfo.saturday?.timeRanges?.length > 0 ? 
+                       workshopInfo.saturday.timeRanges.map(range => `${range.start} - ${range.end}`).join(', ') : 'No disponible'}\n` +
+                     `📆 *Domingos:* ${workshopInfo.sunday?.timeRanges?.length > 0 ? 
+                       workshopInfo.sunday.timeRanges.map(range => `${range.start} - ${range.end}`).join(', ') : 'No disponible'}\n` +
+                     `🎊 *Feriados:* ${workshopInfo.holidays?.timeRanges?.length > 0 ? 
+                       workshopInfo.holidays.timeRanges.map(range => `${range.start} - ${range.end}`).join(', ') : 'No disponible'}\n\n` +
+                     `${workshopInfo.reference ? `🗺️ *Referencias:*\n${workshopInfo.reference}\n\n` : ''}` +
+                     `📱 *Cualquier consulta no dudes en comunicarte*\n\n` +
+                     `🙏 *¡Gracias por confiar en nosotros!* ❤️`;
+
+      // Formatear número de teléfono (remover caracteres no numéricos)
+      const formattedPhone = work.clients.phone.replace(/\D/g, '');
+      
+      // Crear el enlace de WhatsApp
+      const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
+      
+      // Abrir WhatsApp en una nueva pestaña
+      window.open(whatsappUrl, '_blank');
+      
+      toast({
+        title: 'WhatsApp abierto',
+        description: 'Se ha abierto WhatsApp con la plantilla del mensaje para el cliente'
+      });
+    } catch (error) {
+      console.error('Error al notificar al cliente:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudo abrir WhatsApp',
+        variant: 'destructive'
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-96 bg-gradient-dashboard">
@@ -628,6 +693,16 @@ const WorkDetail: React.FC = () => {
                           </svg>
                           Enviar WhatsApp
                         </a>
+                        {work.status === 'completed' && (
+                          <Button
+                            onClick={notifyClient}
+                            className="bg-gradient-success hover-scale transition-smooth text-sm"
+                            size="sm"
+                          >
+                            <MessageCircle className="h-4 w-4 mr-2" />
+                            Notificar al Cliente
+                          </Button>
+                        )}
                       </div>
                     )}
                   </div>
