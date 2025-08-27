@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, ArrowLeft, Calendar, DollarSign, User, Tag } from 'lucide-react';
+import { Save, ArrowLeft, Calendar, DollarSign, User, Tag, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -419,6 +419,33 @@ export default function CreateWork() {
                 />
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Información del Taller */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <MapPin className="h-5 w-5" />
+              <span>Información del Taller</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Dirección del Taller</Label>
+              <p className="text-muted-foreground">123 Calle Principal, Ciudad, Provincia</p>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Horarios de Atención</Label>
+              <p className="text-muted-foreground">Lunes a Viernes: 9:00 AM - 6:00 PM</p>
+              <p className="text-muted-foreground">Sábados: 10:00 AM - 4:00 PM</p>
+              <p className="text-muted-foreground">Domingos: Cerrado</p>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Contacto</Label>
+              <p className="text-muted-foreground">Teléfono: +54 11 1234-5678</p>
+              <p className="text-muted-foreground">Email: taller@ejemplo.com</p>
+            </div>
           </CardContent>
         </Card>
 
