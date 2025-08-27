@@ -40,7 +40,7 @@ const statusColors = {
 const depositStatusLabels = {
   pending: 'Pendiente',
   partial: 'Parcial',
-  paid: 'Pagado'
+  completed: 'Pagado'
 };
 
 interface Appointment {
@@ -63,6 +63,8 @@ interface Work {
   price: number;
   deposit_amount: number;
   deposit_status: string;
+  amount_paid?: number;
+  payment_method?: string;
   entry_date: string;
   tentative_delivery_date: string;
   actual_delivery_date?: string;
@@ -85,6 +87,13 @@ const WorkDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [newNote, setNewNote] = useState('');
+  const [isEditingPayment, setIsEditingPayment] = useState(false);
+  const [paymentData, setPaymentData] = useState({
+    amount_paid: 0,
+    payment_method: '',
+    deposit_amount: 0,
+    deposit_status: 'pending' as 'pending' | 'partial' | 'completed'
+  });
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -103,6 +112,14 @@ const WorkDetail: React.FC = () => {
 
         if (workError) throw workError;
         setWork(workData);
+        
+        // Initialize payment data
+        setPaymentData({
+          amount_paid: workData.amount_paid || 0,
+          payment_method: workData.payment_method || '',
+          deposit_amount: workData.deposit_amount || 0,
+          deposit_status: (workData.deposit_status || 'pending') as 'pending' | 'partial' | 'completed'
+        });
 
         // Fetch appointments for this work
         const { data: appointmentsData, error: appointmentsError } = await supabase
@@ -193,6 +210,47 @@ const WorkDetail: React.FC = () => {
       toast({
         title: 'Error',
         description: 'No se pudo agregar la nota',
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updatePaymentInfo = async () => {
+    if (!work) return;
+
+    try {
+      setSaving(true);
+      const { error } = await supabase
+        .from('works')
+        .update({
+          amount_paid: paymentData.amount_paid,
+          payment_method: paymentData.payment_method,
+          deposit_amount: paymentData.deposit_amount,
+          deposit_status: paymentData.deposit_status
+        })
+        .eq('id', work.id);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Pago actualizado',
+        description: 'La información de pago se ha actualizado correctamente',
+      });
+
+      setWork({
+        ...work,
+        amount_paid: paymentData.amount_paid,
+        payment_method: paymentData.payment_method,
+        deposit_amount: paymentData.deposit_amount,
+        deposit_status: paymentData.deposit_status
+      });
+      setIsEditingPayment(false);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'No se pudo actualizar la información de pago',
         variant: 'destructive',
       });
     } finally {
@@ -421,7 +479,7 @@ const WorkDetail: React.FC = () => {
 
   const progressData = getWorkProgress(work.status);
   const overdue = isOverdue();
-  const saldoPendiente = work.price - work.deposit_amount;
+  const saldoPendiente = work.price - (work.deposit_amount || 0) - (work.amount_paid || 0);
 
   return (
     <div className="min-h-screen bg-gradient-dashboard p-6">
@@ -768,43 +826,152 @@ const WorkDetail: React.FC = () => {
             {/* Información Financiera */}
             <Card className="card-elegant bg-gradient-card-hover border-green-200">
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-green-700">
-                  <DollarSign className="h-5 w-5" />
-                  <span>Información Financiera</span>
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center space-x-2 text-green-700">
+                    <DollarSign className="h-5 w-5" />
+                    <span>Información Financiera</span>
+                  </CardTitle>
+                  <Button
+                    onClick={() => setIsEditingPayment(!isEditingPayment)}
+                    variant="outline"
+                    size="sm"
+                    className="hover-scale"
+                  >
+                    {isEditingPayment ? 'Cancelar' : 'Actualizar Pago'}
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid gap-3">
-                  <div className="flex justify-between items-center p-3 bg-white dark:bg-gray-800 rounded-lg border">
-                    <span className="text-sm font-medium">Precio Total:</span>
-                    <span className="font-bold text-green-600 text-lg">
-                      {formatCurrency(work.price)}
-                    </span>
-                  </div>
-                  
-                  <div className="flex justify-between items-center p-3 bg-white dark:bg-gray-800 rounded-lg border">
-                    <div>
-                      <span className="text-sm font-medium block">Seña Abonada:</span>
-                      <Badge variant="outline" className="mt-1 text-xs">
-                        {depositStatusLabels[work.deposit_status as keyof typeof depositStatusLabels]}
-                      </Badge>
+                {isEditingPayment ? (
+                  <div className="space-y-4 p-4 bg-muted/30 rounded-lg border">
+                    <div className="grid gap-4">
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Importe Cobrado:</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={paymentData.amount_paid}
+                          onChange={(e) => setPaymentData({...paymentData, amount_paid: parseFloat(e.target.value) || 0})}
+                          className="w-full p-2 border rounded-md text-sm"
+                          placeholder="0.00"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Medio de Pago:</label>
+                        <select
+                          value={paymentData.payment_method}
+                          onChange={(e) => setPaymentData({...paymentData, payment_method: e.target.value})}
+                          className="w-full p-2 border rounded-md text-sm"
+                        >
+                          <option value="">Seleccionar...</option>
+                          <option value="efectivo">Efectivo</option>
+                          <option value="transferencia">Transferencia</option>
+                          <option value="tarjeta_debito">Tarjeta de Débito</option>
+                          <option value="tarjeta_credito">Tarjeta de Crédito</option>
+                          <option value="cheque">Cheque</option>
+                          <option value="mercado_pago">Mercado Pago</option>
+                          <option value="otro">Otro</option>
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Seña Abonada:</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={paymentData.deposit_amount}
+                          onChange={(e) => setPaymentData({...paymentData, deposit_amount: parseFloat(e.target.value) || 0})}
+                          className="w-full p-2 border rounded-md text-sm"
+                          placeholder="0.00"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Estado de Seña:</label>
+                        <select
+                          value={paymentData.deposit_status}
+                          onChange={(e) => setPaymentData({...paymentData, deposit_status: e.target.value as 'pending' | 'partial' | 'completed'})}
+                          className="w-full p-2 border rounded-md text-sm"
+                        >
+                          <option value="pending">Pendiente</option>
+                          <option value="partial">Parcial</option>
+                          <option value="completed">Pagado</option>
+                        </select>
+                      </div>
                     </div>
-                    <span className="font-bold text-blue-600 text-lg">
-                      {formatCurrency(work.deposit_amount)}
-                    </span>
+                    
+                    <div className="flex space-x-2 pt-2">
+                      <Button
+                        onClick={updatePaymentInfo}
+                        disabled={saving}
+                        className="bg-gradient-primary hover-scale flex-1"
+                      >
+                        {saving ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Guardando...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="h-4 w-4 mr-2" />
+                            Guardar
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </div>
-                  
-                  <div className="flex justify-between items-center p-3 bg-white dark:bg-gray-800 rounded-lg border">
-                    <span className="text-sm font-medium">Saldo Pendiente:</span>
-                    <span className={`font-bold text-lg ${
-                      saldoPendiente > 0 ? 'text-orange-600' : 'text-green-600'
-                    }`}>
-                      {formatCurrency(saldoPendiente)}
-                    </span>
+                ) : (
+                  <div className="grid gap-3">
+                    <div className="flex justify-between items-center p-3 bg-white dark:bg-gray-800 rounded-lg border">
+                      <span className="text-sm font-medium">Importe Total:</span>
+                      <span className="font-bold text-green-600 text-lg">
+                        {formatCurrency(work.price)}
+                      </span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center p-3 bg-white dark:bg-gray-800 rounded-lg border">
+                      <div>
+                        <span className="text-sm font-medium block">Seña Abonada:</span>
+                        <Badge variant="outline" className="mt-1 text-xs">
+                          {depositStatusLabels[work.deposit_status as keyof typeof depositStatusLabels]}
+                        </Badge>
+                      </div>
+                      <span className="font-bold text-blue-600 text-lg">
+                        {formatCurrency(work.deposit_amount || 0)}
+                      </span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center p-3 bg-white dark:bg-gray-800 rounded-lg border">
+                      <span className="text-sm font-medium">Importe Cobrado:</span>
+                      <span className="font-bold text-purple-600 text-lg">
+                        {formatCurrency(work.amount_paid || 0)}
+                      </span>
+                    </div>
+                    
+                    {work.payment_method && (
+                      <div className="flex justify-between items-center p-3 bg-white dark:bg-gray-800 rounded-lg border">
+                        <span className="text-sm font-medium">Medio de Pago:</span>
+                        <span className="font-medium text-sm capitalize">
+                          {work.payment_method.replace('_', ' ')}
+                        </span>
+                      </div>
+                    )}
+                    
+                    <div className="flex justify-between items-center p-3 bg-white dark:bg-gray-800 rounded-lg border">
+                      <span className="text-sm font-medium">Saldo Pendiente:</span>
+                      <span className={`font-bold text-lg ${
+                        saldoPendiente > 0 ? 'text-orange-600' : 'text-green-600'
+                      }`}>
+                        {formatCurrency(saldoPendiente)}
+                      </span>
+                    </div>
                   </div>
-                </div>
+                )}
 
-                {saldoPendiente > 0 && (
+                {!isEditingPayment && saldoPendiente > 0 && (
                   <div className="bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg border border-amber-200">
                     <p className="text-amber-700 dark:text-amber-300 text-sm text-center">
                       💰 Saldo pendiente por cobrar

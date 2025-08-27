@@ -241,6 +241,7 @@ export type Database = {
       works: {
         Row: {
           actual_delivery_date: string | null
+          amount_paid: number | null
           category_id: string
           client_id: string
           created_at: string | null
@@ -250,6 +251,7 @@ export type Database = {
           entry_date: string
           id: string
           notes: string | null
+          payment_method: string | null
           price: number
           status: Database["public"]["Enums"]["work_status"] | null
           tentative_delivery_date: string
@@ -257,6 +259,7 @@ export type Database = {
         }
         Insert: {
           actual_delivery_date?: string | null
+          amount_paid?: number | null
           category_id: string
           client_id: string
           created_at?: string | null
@@ -266,6 +269,7 @@ export type Database = {
           entry_date?: string
           id?: string
           notes?: string | null
+          payment_method?: string | null
           price: number
           status?: Database["public"]["Enums"]["work_status"] | null
           tentative_delivery_date: string
@@ -273,6 +277,7 @@ export type Database = {
         }
         Update: {
           actual_delivery_date?: string | null
+          amount_paid?: number | null
           category_id?: string
           client_id?: string
           created_at?: string | null
@@ -282,6 +287,7 @@ export type Database = {
           entry_date?: string
           id?: string
           notes?: string | null
+          payment_method?: string | null
           price?: number
           status?: Database["public"]["Enums"]["work_status"] | null
           tentative_delivery_date?: string
