@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
@@ -28,6 +29,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const timeSlots = [
     '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
@@ -88,6 +90,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
         appointment_time: time,
         status: 'scheduled',
         notes: notes.trim(),
+        created_by: user?.id || null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };

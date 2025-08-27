@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Appointment {
   id: string;
@@ -20,6 +21,7 @@ interface Appointment {
   appointment_time: string;
   status: string;
   notes?: string;
+  created_by?: string;
   clients: {
     name: string;
     phone?: string;
@@ -32,6 +34,10 @@ interface Appointment {
     work_categories: {
       name: string;
     };
+  };
+  profiles?: {
+    full_name?: string;
+    email?: string;
   };
 }
 
@@ -78,6 +84,7 @@ export default function CalendarPage() {
   });
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchAppointments();
@@ -100,7 +107,8 @@ export default function CalendarPage() {
             price,
             status,
             work_categories (name)
-          )
+          ),
+          profiles:created_by (full_name, email)
         `)
         .gte('appointment_date', startOfMonth.toISOString().split('T')[0])
         .lte('appointment_date', endOfMonth.toISOString().split('T')[0])
@@ -173,7 +181,8 @@ export default function CalendarPage() {
           appointment_date: formData.appointment_date,
           appointment_time: formData.appointment_time,
           notes: formData.notes || null,
-          status: 'scheduled'
+          status: 'scheduled',
+          created_by: user?.id || null
         }]);
 
       if (error) throw error;
@@ -518,6 +527,11 @@ export default function CalendarPage() {
                       <p className="text-sm text-muted-foreground">
                         {appointment.works.work_categories.name}
                       </p>
+                      {appointment.profiles && (
+                        <p className="text-xs text-muted-foreground">
+                          Creado por: {appointment.profiles.full_name || appointment.profiles.email}
+                        </p>
+                      )}
                       {appointment.notes && (
                         <p className="text-sm text-muted-foreground italic">
                           {appointment.notes}
@@ -606,6 +620,13 @@ export default function CalendarPage() {
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Notas</Label>
                   <p className="text-sm bg-muted p-2 rounded">{selectedAppointment.notes}</p>
+                </div>
+              )}
+
+              {selectedAppointment.profiles && (
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Creado por</Label>
+                  <p className="text-sm">{selectedAppointment.profiles.full_name || selectedAppointment.profiles.email}</p>
                 </div>
               )}
 
