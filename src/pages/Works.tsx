@@ -23,12 +23,17 @@ interface Work {
   actual_delivery_date?: string;
   notes?: string;
   created_at: string;
+  created_by?: string;
   clients: {
     name: string;
     phone?: string;
   };
   work_categories: {
     name: string;
+  };
+  profiles?: {
+    full_name?: string;
+    email?: string;
   };
 }
 
@@ -73,7 +78,8 @@ export default function Works() {
         .select(`
           *,
           clients (name, phone),
-          work_categories (name)
+          work_categories (name),
+          profiles:created_by (full_name, email)
         `)
         .order('created_at', { ascending: false });
 
@@ -398,9 +404,16 @@ const updateWorkStatus = async (workId: string, newStatus: string, clientPhone: 
                 )}
 
                 <div className="flex-responsive justify-between items-center pt-2 border-t border-border/50">
-                  <span className="text-xs text-muted-foreground">
-                    Creado: {new Date(work.created_at).toLocaleDateString()}
-                  </span>
+                  <div className="flex flex-col space-y-1">
+                    <span className="text-xs text-muted-foreground">
+                      Creado: {new Date(work.created_at).toLocaleDateString()}
+                    </span>
+                    {work.profiles && (
+                      <span className="text-xs text-muted-foreground">
+                        Por: {work.profiles.full_name || work.profiles.email || 'Usuario desconocido'}
+                      </span>
+                    )}
+                  </div>
                   
                   <div className="flex space-x-2">
                     <Button

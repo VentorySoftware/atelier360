@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import AppointmentForm from '@/components/AppointmentForm';
 import QuickClientForm from '@/components/QuickClientForm';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Client {
   id: string;
@@ -43,6 +44,7 @@ export default function CreateWork() {
   });
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchClients();
@@ -162,7 +164,8 @@ export default function CreateWork() {
           entry_date: formData.entry_date,
           tentative_delivery_date: formData.tentative_delivery_date,
           notes: formData.notes || null,
-          status: 'pending' as const
+          status: 'pending' as const,
+          created_by: user?.id || null
         })
         .select()
         .single();
