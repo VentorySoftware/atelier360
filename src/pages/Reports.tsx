@@ -1,78 +1,90 @@
-import React, { useState, useEffect } from 'react';
-import { ReportFilters, getWorksReport, getAppointmentsReport, getFinancialReport } from '@/lib/reportQueries';
-import { Button } from '@/components/ui/button';
-import ReportFiltersComponent from '@/components/Reports/ReportFilters';
-import ReportTable from '@/components/Reports/ReportTable';
-import ReportCharts from '@/components/Reports/ReportCharts';
+import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { FileText, Users, Calendar, DollarSign } from 'lucide-react';
+import WorksReportSection from '@/components/Reports/WorksReportSection';
+import ClientsReportSection from '@/components/Reports/ClientsReportSection';
+import AppointmentsReportSection from '@/components/Reports/AppointmentsReportSection';
+import PaymentsReportSection from '@/components/Reports/PaymentsReportSection';
 
 const Reports = () => {
-  const [filters, setFilters] = useState<ReportFilters>({});
-  const [worksData, setWorksData] = useState([]);
-  const [appointmentsData, setAppointmentsData] = useState([]);
-  const [financialData, setFinancialData] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('works');
 
-  useEffect(() => {
-    const fetchReports = async () => {
-      setLoading(true);
-      try {
-        if (activeTab === 'works') {
-          const works = await getWorksReport(filters);
-          setWorksData(works);
-        } else if (activeTab === 'appointments') {
-          const appointments = await getAppointmentsReport(filters);
-          setAppointmentsData(appointments);
-        } else if (activeTab === 'financial') {
-          const financial = await getFinancialReport(filters);
-          setFinancialData(financial);
-        }
-      } catch (error) {
-        console.error('Error fetching reports:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchReports();
-  }, [filters, activeTab]);
+  const entities = [
+    {
+      id: 'works',
+      name: 'Trabajos',
+      icon: FileText,
+      description: 'Consultar trabajos por usuario, estado, cliente y fechas',
+      component: WorksReportSection
+    },
+    {
+      id: 'clients',
+      name: 'Clientes',
+      icon: Users,
+      description: 'Buscar clientes por nombre, ID y fecha de alta',
+      component: ClientsReportSection
+    },
+    {
+      id: 'appointments',
+      name: 'Citas',
+      icon: Calendar,
+      description: 'Revisar citas por cliente, estado y fechas',
+      component: AppointmentsReportSection
+    },
+    {
+      id: 'payments',
+      name: 'Pagos',
+      icon: DollarSign,
+      description: 'Analizar información financiera y pagos',
+      component: PaymentsReportSection
+    }
+  ];
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Módulo de Reportes</h1>
-      <ReportFiltersComponent setFilters={setFilters} />
-      
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="flex flex-col space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight">Módulo de Reportes</h1>
+        <p className="text-muted-foreground">
+          Consulta y exporta información del sistema de manera rápida y eficiente
+        </p>
+      </div>
+
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="works">Trabajos</TabsTrigger>
-          <TabsTrigger value="appointments">Citas</TabsTrigger>
-          <TabsTrigger value="financial">Financiero</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4">
+          {entities.map((entity) => (
+            <TabsTrigger 
+              key={entity.id} 
+              value={entity.id}
+              className="flex items-center gap-2"
+            >
+              <entity.icon className="h-4 w-4" />
+              {entity.name}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
-        <TabsContent value="works">
-          {loading ? (
-            <p>Cargando reportes de trabajos...</p>
-          ) : (
-            <ReportTable data={worksData} title="Reportes de Trabajos" />
-          )}
-        </TabsContent>
-
-        <TabsContent value="appointments">
-          {loading ? (
-            <p>Cargando reportes de citas...</p>
-          ) : (
-            <ReportTable data={appointmentsData} title="Reportes de Citas" />
-          )}
-        </TabsContent>
-
-        <TabsContent value="financial">
-          {loading ? (
-            <p>Cargando reportes financieros...</p>
-          ) : (
-            <ReportCharts data={financialData} />
-          )}
-        </TabsContent>
+        {entities.map((entity) => {
+          const Component = entity.component;
+          return (
+            <TabsContent key={entity.id} value={entity.id} className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <entity.icon className="h-5 w-5" />
+                    <div>
+                      <CardTitle>Reportes de {entity.name}</CardTitle>
+                      <CardDescription>{entity.description}</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <Component />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          );
+        })}
       </Tabs>
     </div>
   );

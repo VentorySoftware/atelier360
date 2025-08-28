@@ -6,9 +6,9 @@ export interface ReportFilters {
   endDate?: string;
   userId?: string;
   clientId?: string;
-  status?: 'pending' | 'in_progress' | 'completed' | 'delivered' | 'cancelled' | 'all';
-  appointmentStatus?: string;
-  timeRange?: 'custom' | 'month' | 'year';
+  status?: 'pending' | 'in_progress' | 'completed' | 'delivered' | 'cancelled' | 'all' | '';
+  appointmentStatus?: 'scheduled' | 'confirmed' | 'completed' | 'cancelled' | 'rescheduled' | 'all' | '';
+  timeRange?: 'custom' | 'month' | 'year' | '';
 }
 
 export const getWorksReport = async (filters: ReportFilters = {}) => {
