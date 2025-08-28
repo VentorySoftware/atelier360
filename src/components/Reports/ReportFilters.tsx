@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Tabs } from '@/components/ui/tabs'; // Importar componentes de pestañas
 import { ReportFilters as ReportFiltersType, getUsersList, getClientsList } from '@/lib/reportQueries';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -62,21 +63,31 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({ setFilters }) => {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-2">Fecha Inicio</label>
-          <Input
-            type="date"
-            value={localFilters.startDate || ''}
-            onChange={(e) => handleFilterChange('startDate', e.target.value)}
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-2">Fecha Fin</label>
-          <Input
-            type="date"
-            value={localFilters.endDate || ''}
-            onChange={(e) => handleFilterChange('endDate', e.target.value)}
-          />
+        {/* Grupo de Fechas - Diseño Mejorado */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium">Rango de Fechas</label>
+          <div className="flex flex-col space-y-2">
+            <div className="flex items-center space-x-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <Input
+                type="date"
+                value={localFilters.startDate || ''}
+                onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                className="flex-1"
+                placeholder="Fecha inicio"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <Input
+                type="date"
+                value={localFilters.endDate || ''}
+                onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                className="flex-1"
+                placeholder="Fecha fin"
+              />
+            </div>
+          </div>
         </div>
         <div>
           <label className="block text-sm font-medium mb-2">Usuario</label>
@@ -154,19 +165,30 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({ setFilters }) => {
             </SelectContent>
           </Select>
         </div>
+        {/* Rango de Tiempo Predefinido */}
         <div>
-          <label className="block text-sm font-medium mb-2">Rango de Tiempo</label>
+          <label className="block text-sm font-medium mb-2">Rango Predefinido</label>
           <Select 
             value={localFilters.timeRange || ''} 
-            onValueChange={(value) => handleFilterChange('timeRange', value)}
+            onValueChange={(value) => {
+              handleFilterChange('timeRange', value);
+              // Limpiar fechas personalizadas si se selecciona un rango predefinido
+              if (value !== 'custom') {
+                handleFilterChange('startDate', '');
+                handleFilterChange('endDate', '');
+              }
+            }}
           >
             <SelectTrigger>
               <SelectValue placeholder="Seleccionar rango" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="custom">Personalizado</SelectItem>
+              <SelectItem value="today">Hoy</SelectItem>
+              <SelectItem value="week">Esta semana</SelectItem>
               <SelectItem value="month">Este mes</SelectItem>
+              <SelectItem value="quarter">Este trimestre</SelectItem>
               <SelectItem value="year">Este año</SelectItem>
+              <SelectItem value="custom">Personalizado</SelectItem>
             </SelectContent>
           </Select>
         </div>
