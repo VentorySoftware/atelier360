@@ -95,7 +95,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
 
       const { data, error } = await supabase
         .from('appointments')
-        .insert([newAppointment])
+        .insert(newAppointment as any)
         .select();
 
       if (error) throw error;

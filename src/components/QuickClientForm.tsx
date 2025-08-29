@@ -45,14 +45,14 @@ const QuickClientForm: React.FC<QuickClientFormProps> = ({ onClientCreated }) =>
     try {
       const { data, error } = await supabase
         .from('clients')
-        .insert([
+        .insert(
           {
             name: formData.name.trim(),
             phone: formData.phone.trim() || null,
             email: formData.email.trim() || null,
             created_by: null
-          }
-        ])
+          } as any
+        )
         .select()
         .single();
 

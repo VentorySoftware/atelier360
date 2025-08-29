@@ -166,7 +166,7 @@ export default function CreateWork() {
           notes: formData.notes || null,
           status: 'pending' as const,
           created_by: null // Will be handled by authentication logic
-        })
+        } as any)
         .select()
         .single();
 
@@ -182,7 +182,7 @@ export default function CreateWork() {
             appointment_date: formData.appointment_date,
             appointment_time: formData.appointment_time,
             status: 'scheduled'
-          });
+          } as any);
 
         if (appointmentError) throw appointmentError;
       }

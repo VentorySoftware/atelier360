@@ -175,7 +175,7 @@ export default function CalendarPage() {
 
       const { error } = await supabase
         .from('appointments')
-        .insert([{
+        .insert({
           work_id: formData.work_id,
           client_id: selectedWork.clients.id,
           appointment_date: formData.appointment_date,
@@ -183,7 +183,7 @@ export default function CalendarPage() {
           notes: formData.notes || null,
           status: 'scheduled',
           created_by: null
-        }]);
+        } as any);
 
       if (error) throw error;
 
