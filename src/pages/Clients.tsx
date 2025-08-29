@@ -86,7 +86,10 @@ export default function Clients() {
       } else {
         const { error } = await supabase
           .from('clients')
-          .insert([formData]);
+          .insert([{
+            ...formData,
+            created_by: null
+          }]);
 
         if (error) throw error;
 

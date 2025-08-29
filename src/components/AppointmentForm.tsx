@@ -90,9 +90,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
         appointment_time: time,
         status: 'scheduled',
         notes: notes.trim(),
-        created_by: user?.id || null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        created_by: null // Will be handled by authentication logic
       };
 
       const { data, error } = await supabase

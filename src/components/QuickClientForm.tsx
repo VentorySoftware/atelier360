@@ -49,7 +49,8 @@ const QuickClientForm: React.FC<QuickClientFormProps> = ({ onClientCreated }) =>
           {
             name: formData.name.trim(),
             phone: formData.phone.trim() || null,
-            email: formData.email.trim() || null
+            email: formData.email.trim() || null,
+            created_by: null
           }
         ])
         .select()

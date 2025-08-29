@@ -90,7 +90,10 @@ export default function Categories() {
       } else {
         const { error } = await supabase
           .from('work_categories')
-          .insert([formData]);
+          .insert([{
+            ...formData,
+            created_by: null
+          }]);
 
         if (error) throw error;
 

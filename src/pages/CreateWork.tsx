@@ -165,7 +165,7 @@ export default function CreateWork() {
           tentative_delivery_date: formData.tentative_delivery_date,
           notes: formData.notes || null,
           status: 'pending' as const,
-          created_by: user?.id || null
+          created_by: null // Will be handled by authentication logic
         })
         .select()
         .single();

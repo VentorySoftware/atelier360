@@ -182,7 +182,7 @@ export default function CalendarPage() {
           appointment_time: formData.appointment_time,
           notes: formData.notes || null,
           status: 'scheduled',
-          created_by: user?.id || null
+          created_by: null
         }]);
 
       if (error) throw error;
