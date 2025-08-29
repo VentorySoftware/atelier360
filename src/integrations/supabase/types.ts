@@ -18,38 +18,38 @@ export type Database = {
         Row: {
           appointment_date: string
           appointment_time: string
-          client_id: string
+          client_id: string | null
           created_at: string | null
           created_by: string | null
           id: string
           notes: string | null
           status: string | null
           updated_at: string | null
-          work_id: string
+          work_id: string | null
         }
         Insert: {
           appointment_date: string
           appointment_time: string
-          client_id: string
+          client_id?: string | null
           created_at?: string | null
           created_by?: string | null
-          id?: string
+          id: string
           notes?: string | null
           status?: string | null
           updated_at?: string | null
-          work_id: string
+          work_id?: string | null
         }
         Update: {
           appointment_date?: string
           appointment_time?: string
-          client_id?: string
+          client_id?: string | null
           created_at?: string | null
           created_by?: string | null
           id?: string
           notes?: string | null
           status?: string | null
           updated_at?: string | null
-          work_id?: string
+          work_id?: string | null
         }
         Relationships: [
           {
@@ -92,7 +92,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           email?: string | null
-          id?: string
+          id: string
           name: string
           notes?: string | null
           phone?: string | null
@@ -126,15 +126,15 @@ export type Database = {
           created_by: string | null
           id: string
           notes: string | null
-          work_id: string
+          work_id: string | null
         }
         Insert: {
           contact_date?: string | null
           contact_method: string
           created_by?: string | null
-          id?: string
+          id: string
           notes?: string | null
-          work_id: string
+          work_id?: string | null
         }
         Update: {
           contact_date?: string | null
@@ -142,7 +142,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           notes?: string | null
-          work_id?: string
+          work_id?: string | null
         }
         Relationships: [
           {
@@ -209,7 +209,7 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           estimated_hours?: number | null
-          id?: string
+          id: string
           is_active?: boolean | null
           name: string
           requires_appointment?: boolean | null
@@ -242,8 +242,8 @@ export type Database = {
         Row: {
           actual_delivery_date: string | null
           amount_paid: number | null
-          category_id: string
-          client_id: string
+          category_id: string | null
+          client_id: string | null
           created_at: string | null
           created_by: string | null
           deposit_amount: number | null
@@ -260,14 +260,14 @@ export type Database = {
         Insert: {
           actual_delivery_date?: string | null
           amount_paid?: number | null
-          category_id: string
-          client_id: string
+          category_id?: string | null
+          client_id?: string | null
           created_at?: string | null
           created_by?: string | null
           deposit_amount?: number | null
           deposit_status?: Database["public"]["Enums"]["payment_status"] | null
           entry_date?: string
-          id?: string
+          id: string
           notes?: string | null
           payment_method?: string | null
           price: number
@@ -278,8 +278,8 @@ export type Database = {
         Update: {
           actual_delivery_date?: string | null
           amount_paid?: number | null
-          category_id?: string
-          client_id?: string
+          category_id?: string | null
+          client_id?: string | null
           created_at?: string | null
           created_by?: string | null
           deposit_amount?: number | null
@@ -322,6 +322,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_formatted_id: {
+        Args: { prefix: string; sequence_name: string }
+        Returns: string
+      }
+      get_current_profile_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["user_role"]
