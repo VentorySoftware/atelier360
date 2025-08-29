@@ -26,11 +26,11 @@ export const getWorksReport = async (filters: ReportFilters = {}) => {
     query = query.gte('created_at', filters.startDate).lte('created_at', filters.endDate);
   }
 
-  if (filters.userId) {
+  if (filters.userId && filters.userId !== 'all') {
     query = query.eq('created_by', filters.userId);
   }
 
-  if (filters.clientId) {
+  if (filters.clientId && filters.clientId !== 'all') {
     query = query.eq('client_id', filters.clientId);
   }
 
@@ -63,7 +63,7 @@ export const getAppointmentsReport = async (filters: ReportFilters = {}) => {
     query = query.gte('appointment_date', filters.startDate).lte('appointment_date', filters.endDate);
   }
 
-  if (filters.clientId) {
+  if (filters.clientId && filters.clientId !== 'all') {
     query = query.eq('client_id', filters.clientId);
   }
 

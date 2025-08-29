@@ -91,11 +91,11 @@ const PaymentsReportSection = () => {
         const startOfYear = new Date(now.getFullYear(), 0, 1);
         const endOfYear = new Date(now.getFullYear(), 11, 31);
         query = query.gte('created_at', startOfYear.toISOString()).lte('created_at', endOfYear.toISOString());
-      } else if (filters.startDate && filters.endDate) {
+      } else if (filters.timeRange === 'custom' && filters.startDate && filters.endDate) {
         query = query.gte('created_at', filters.startDate).lte('created_at', filters.endDate);
       }
 
-      if (filters.clientId) {
+      if (filters.clientId && filters.clientId !== 'all') {
         query = query.eq('client_id', filters.clientId);
       }
 
@@ -111,14 +111,16 @@ const PaymentsReportSection = () => {
 
       // Filtrar por estado de pago si está seleccionado
       let filteredByPayment = enrichedData;
-      if (filters.paymentStatus === 'pending') {
-        filteredByPayment = enrichedData.filter(work => (work.pending_balance || 0) > 0);
-      } else if (filters.paymentStatus === 'completed') {
-        filteredByPayment = enrichedData.filter(work => (work.pending_balance || 0) === 0 && (work.price || 0) > 0);
-      } else if (filters.paymentStatus === 'partial') {
-        filteredByPayment = enrichedData.filter(work => 
-          (work.amount_paid || 0) > 0 && (work.pending_balance || 0) > 0
-        );
+      if (filters.paymentStatus && filters.paymentStatus !== 'all') {
+        if (filters.paymentStatus === 'pending') {
+          filteredByPayment = enrichedData.filter(work => (work.pending_balance || 0) > 0);
+        } else if (filters.paymentStatus === 'completed') {
+          filteredByPayment = enrichedData.filter(work => (work.pending_balance || 0) === 0 && (work.price || 0) > 0);
+        } else if (filters.paymentStatus === 'partial') {
+          filteredByPayment = enrichedData.filter(work => 
+            (work.amount_paid || 0) > 0 && (work.pending_balance || 0) > 0
+          );
+        }
       }
 
       setPaymentWorks(filteredByPayment);
@@ -323,7 +325,7 @@ const PaymentsReportSection = () => {
                   <SelectValue placeholder="Todos los clientes" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos los clientes</SelectItem>
+                  <SelectItem value="all">Todos los clientes</SelectItem>
                   {clients.map((client) => (
                     <SelectItem key={client.id} value={client.id}>
                       {client.name}
@@ -340,7 +342,7 @@ const PaymentsReportSection = () => {
                   <SelectValue placeholder="Todos los estados" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos los estados</SelectItem>
+                  <SelectItem value="all">Todos los estados</SelectItem>
                   <SelectItem value="pending">Pendiente</SelectItem>
                   <SelectItem value="partial">Parcial</SelectItem>
                   <SelectItem value="completed">Completado</SelectItem>
@@ -357,14 +359,14 @@ const PaymentsReportSection = () => {
                   <SelectValue placeholder="Seleccionar período" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Personalizado</SelectItem>
+                  <SelectItem value="custom">Personalizado</SelectItem>
                   <SelectItem value="month">Este mes</SelectItem>
                   <SelectItem value="year">Este año</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {!filters.timeRange && (
+            {filters.timeRange === 'custom' && (
               <>
                 <div>
                   <label className="text-sm font-medium mb-2 block">Fecha Inicio</label>
