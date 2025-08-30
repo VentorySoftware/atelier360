@@ -40,7 +40,8 @@ const mainItems = [
 const adminItems = [
   { title: 'Usuarios', url: '/users', icon: Users },
   { title: 'Información del Taller', url: '/workshop-info', icon: Settings },
-  { title: 'Reportes', url: '/reports', icon: ClipboardList }, // Agregado aquí
+  { title: 'Configuración de Templates', url: '/templates', icon: ClipboardList },
+  { title: 'Reportes', url: '/reports', icon: BarChart3 },
 ];
 
 interface AppSidebarProps {

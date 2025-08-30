@@ -161,6 +161,42 @@ export type Database = {
           },
         ]
       }
+      message_templates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          message_content: string
+          name: string
+          updated_at: string
+          work_category_id: string | null
+          work_status: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id: string
+          is_active?: boolean
+          message_content: string
+          name: string
+          updated_at?: string
+          work_category_id?: string | null
+          work_status: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          message_content?: string
+          name?: string
+          updated_at?: string
+          work_category_id?: string | null
+          work_status?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
