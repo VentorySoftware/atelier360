@@ -98,19 +98,59 @@ export const NotifyClientButton: React.FC<NotifyClientButtonProps> = ({
       return;
     }
 
-    // Clean phone number (remove spaces, dashes, etc.)
-    const cleanPhone = clientData.phone.replace(/[^0-9+]/g, '');
-    
-    // Create WhatsApp URL with pre-filled message
-    const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
-    
-    // Open WhatsApp in new tab
-    window.open(whatsappUrl, '_blank');
-    
-    toast({
-      title: 'WhatsApp abierto',
-      description: 'Se abrió WhatsApp con el mensaje pre-cargado'
-    });
+    if (!message.trim()) {
+      toast({
+        title: 'Sin mensaje',
+        description: 'No hay mensaje para enviar',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    try {
+      // Clean phone number (remove spaces, dashes, parentheses, etc.)
+      let cleanPhone = clientData.phone.replace(/[\s\-\(\)\+]/g, '');
+      
+      // Add country code if not present (assuming Argentina +54)
+      if (!cleanPhone.startsWith('54') && !cleanPhone.startsWith('+54')) {
+        cleanPhone = '54' + cleanPhone;
+      }
+      
+      // Remove + if present
+      cleanPhone = cleanPhone.replace(/^\+/, '');
+      
+      console.log('Original phone:', clientData.phone);
+      console.log('Cleaned phone:', cleanPhone);
+      console.log('Message length:', message.length);
+      
+      // Create WhatsApp URL with pre-filled message
+      const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+      
+      console.log('WhatsApp URL:', whatsappUrl);
+      
+      // Try multiple methods to open WhatsApp
+      const opened = window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+      
+      if (!opened || opened.closed || typeof opened.closed == 'undefined') {
+        // Fallback: try to navigate in same window
+        console.log('Popup blocked, trying fallback...');
+        window.location.href = whatsappUrl;
+      } else {
+        console.log('WhatsApp opened successfully');
+      }
+      
+      toast({
+        title: 'WhatsApp abierto',
+        description: `Se abrió WhatsApp para ${cleanPhone}`
+      });
+    } catch (error) {
+      console.error('Error opening WhatsApp:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudo abrir WhatsApp. Intenta copiar el mensaje y enviarlo manualmente.',
+        variant: 'destructive'
+      });
+    }
   };
 
   const getButtonText = () => {
