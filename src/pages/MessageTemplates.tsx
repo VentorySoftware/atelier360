@@ -74,7 +74,7 @@ export default function MessageTemplates() {
   const [formData, setFormData] = useState({
     name: '',
     work_status: '',
-    work_category_id: '',
+    work_category_id: 'all',
     message_content: ''
   });
   const [originalFormData, setOriginalFormData] = useState(formData);
@@ -145,7 +145,7 @@ export default function MessageTemplates() {
         .from('message_templates')
         .select('*')
         .eq('work_status', formData.work_status)
-        .eq('work_category_id', formData.work_category_id)
+        .eq('work_category_id', formData.work_category_id === 'all' ? null : formData.work_category_id)
         .neq('id', selectedTemplate?.id || '');
       
       if (error) throw error;
@@ -224,13 +224,13 @@ export default function MessageTemplates() {
     setFormData({
       name: '',
       work_status: '',
-      work_category_id: '',
+      work_category_id: 'all',
       message_content: ''
     });
     setOriginalFormData({
       name: '',
       work_status: '',
-      work_category_id: '',
+      work_category_id: 'all',
       message_content: ''
     });
     setIsEditing(true);
@@ -243,7 +243,7 @@ export default function MessageTemplates() {
     const newFormData = {
       name: template.name,
       work_status: template.work_status,
-      work_category_id: template.work_category_id || '',
+      work_category_id: template.work_category_id || 'all',
       message_content: template.message_content
     };
     setFormData(newFormData);
@@ -265,7 +265,7 @@ export default function MessageTemplates() {
       const templateData = {
         name: formData.name,
         work_status: formData.work_status,
-        work_category_id: formData.work_category_id || null,
+        work_category_id: formData.work_category_id === 'all' ? null : formData.work_category_id,
         message_content: formData.message_content,
         is_active: true
       };
@@ -319,7 +319,7 @@ export default function MessageTemplates() {
     setFormData({
       name: '',
       work_status: '',
-      work_category_id: '',
+      work_category_id: 'all',
       message_content: ''
     });
     setValidationError(null);
@@ -502,7 +502,7 @@ export default function MessageTemplates() {
                     <SelectValue placeholder="Selecciona una categoría" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas las categorías</SelectItem>
+                    <SelectItem value="all">Todas las categorías</SelectItem>
                     {categories.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
                         {category.name}
