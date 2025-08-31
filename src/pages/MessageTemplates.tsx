@@ -1,17 +1,54 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Plus, Edit, Trash2, Save, X, RotateCcw, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Save, X, RotateCcw, CheckCircle, AlertTriangle, Eye, Copy } from 'lucide-react';
-import { Constants } from '@/integrations/supabase/types';
+
+// Available dynamic variables
+const DYNAMIC_VARIABLES = [
+  { key: '{nombre_cliente}', description: 'Nombre del cliente' },
+  { key: '{fecha_turno}', description: 'Fecha del turno' },
+  { key: '{categoria_trabajo}', description: 'Categoría del trabajo' },
+  { key: '{estado_trabajo}', description: 'Estado del trabajo' },
+  { key: '{precio}', description: 'Precio del trabajo' },
+  { key: '{deposito}', description: 'Monto del depósito' },
+  { key: '{fecha_entrega}', description: 'Fecha tentativa de entrega' },
+  { key: '{notas}', description: 'Notas del trabajo' }
+];
+
+// Available emojis for WhatsApp
+const WHATSAPP_EMOJIS = [
+  '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇',
+  '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚',
+  '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩',
+  '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣',
+  '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬',
+  '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗',
+  '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '😯',
+  '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐',
+  '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '😈',
+  '👍', '👎', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙',
+  '👈', '👉', '👆', '🖕', '👇', '☝️', '👋', '🤚', '🖐️', '✋',
+  '🖖', '👏', '🙌', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦾',
+  '🦿', '🦵', '🦶', '👂', '🦻', '👃', '🧠', '🫀', '🫁', '🦷',
+  '🦴', '👀', '👁️', '👅', '👄', '💋', '🩸'
+];
+
+// Work status options
+const WORK_STATUS_OPTIONS = [
+  { value: 'pending', label: 'Pendiente' },
+  { value: 'in_progress', label: 'En Progreso' },
+  { value: 'completed', label: 'Completado' },
+  { value: 'delivered', label: 'Entregado' },
+  { value: 'cancelled', label: 'Cancelado' }
+];
 
 interface MessageTemplate {
   id: string;
@@ -20,63 +57,56 @@ interface MessageTemplate {
   work_category_id: string | null;
   message_content: string;
   is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 interface WorkCategory {
   id: string;
   name: string;
-  is_active: boolean;
 }
 
-interface TemplateVariable {
-  key: string;
-  label: string;
-  description: string;
-}
-
-const TEMPLATE_VARIABLES: TemplateVariable[] = [
-  { key: '{nombre_cliente}', label: 'Nombre del Cliente', description: 'Nombre completo del cliente' },
-  { key: '{fecha_turno}', label: 'Fecha del Turno', description: 'Fecha programada para el turno' },
-  { key: '{hora_turno}', label: 'Hora del Turno', description: 'Hora programada para el turno' },
-  { key: '{nombre_trabajo}', label: 'Tipo de Trabajo', description: 'Categoría del trabajo' },
-  { key: '{precio}', label: 'Precio', description: 'Precio total del trabajo' },
-  { key: '{deposito}', label: 'Depósito', description: 'Monto del depósito' },
-  { key: '{fecha_entrega}', label: 'Fecha de Entrega', description: 'Fecha tentativa de entrega' },
-  { key: '{notas}', label: 'Notas', description: 'Notas adicionales del trabajo' },
-];
-
-const EMOJI_SHORTCUTS = [
-  '😊', '👋', '✅', '📅', '💰', '📱', '⏰', '🔔', '💼', '✨',
-  '👍', '❤️', '🙏', '📝', '🎉', '⚡', '🔥', '💯', '🚀', '💪'
-];
-
-const MessageTemplates: React.FC = () => {
+export default function MessageTemplates() {
   const [templates, setTemplates] = useState<MessageTemplate[]>([]);
   const [categories, setCategories] = useState<WorkCategory[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<MessageTemplate | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     work_status: '',
     work_category_id: '',
     message_content: ''
   });
-  const [previewContent, setPreviewContent] = useState('');
-  const [validationError, setValidationError] = useState<string | null>(null);
   const [originalFormData, setOriginalFormData] = useState(formData);
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const [textareaRef, setTextareaRef] = useState<HTMLTextAreaElement | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [conflictingTemplate, setConflictingTemplate] = useState<MessageTemplate | null>(null);
   const { toast } = useToast();
 
-  const workStatuses = Constants.public.Enums.work_status;
+  // Load templates and categories
+  useEffect(() => {
+    loadTemplates();
+    loadCategories();
+  }, []);
 
-  const loadTemplates = useCallback(async () => {
+  // Validate uniqueness in real-time
+  useEffect(() => {
+    if (formData.work_status && formData.work_category_id && isEditing) {
+      validateUniqueness();
+    } else {
+      setValidationError(null);
+      setConflictingTemplate(null);
+    }
+  }, [formData.work_status, formData.work_category_id, selectedTemplate?.id]);
+
+  const loadTemplates = async () => {
     try {
       const { data, error } = await supabase
         .from('message_templates')
         .select('*')
-        .eq('is_active', true)
-        .order('name');
-
+        .order('created_at', { ascending: false });
+      
       if (error) throw error;
       setTemplates(data || []);
     } catch (error) {
@@ -87,16 +117,16 @@ const MessageTemplates: React.FC = () => {
         variant: 'destructive'
       });
     }
-  }, [toast]);
+  };
 
-  const loadCategories = useCallback(async () => {
+  const loadCategories = async () => {
     try {
       const { data, error } = await supabase
         .from('work_categories')
-        .select('id, name, is_active')
+        .select('id, name')
         .eq('is_active', true)
         .order('name');
-
+      
       if (error) throw error;
       setCategories(data || []);
     } catch (error) {
@@ -107,112 +137,109 @@ const MessageTemplates: React.FC = () => {
         variant: 'destructive'
       });
     }
-  }, [toast]);
+  };
 
-  useEffect(() => {
-    loadTemplates();
-    loadCategories();
-  }, [loadTemplates, loadCategories]);
-
-  const validateUniqueness = useCallback(async (workStatus: string, categoryId: string) => {
-    if (!workStatus) return true;
-
-    const existingTemplate = templates.find(t => 
-      t.work_status === workStatus && 
-      t.work_category_id === (categoryId || null) &&
-      t.id !== selectedTemplate?.id
-    );
-
-    if (existingTemplate) {
-      setValidationError(`Ya existe un template para "${workStatus}" y esta categoría: "${existingTemplate.name}"`);
-      return false;
+  const validateUniqueness = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('message_templates')
+        .select('*')
+        .eq('work_status', formData.work_status)
+        .eq('work_category_id', formData.work_category_id)
+        .neq('id', selectedTemplate?.id || '');
+      
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        const conflicting = data[0];
+        setValidationError(`Ya existe un template con esta combinación: "${conflicting.name}"`);
+        setConflictingTemplate(conflicting);
+      } else {
+        setValidationError(null);
+        setConflictingTemplate(null);
+      }
+    } catch (error) {
+      console.error('Error validating uniqueness:', error);
     }
+  };
 
-    setValidationError(null);
-    return true;
-  }, [templates, selectedTemplate]);
-
-  useEffect(() => {
-    if (formData.work_status || formData.work_category_id) {
-      validateUniqueness(formData.work_status, formData.work_category_id);
-    }
-  }, [formData.work_status, formData.work_category_id, validateUniqueness]);
-
-  const generatePreview = useCallback(() => {
+  const generatePreview = useMemo(() => {
     let preview = formData.message_content;
     
-    // Replace variables with sample data
-    const sampleData = {
-      '{nombre_cliente}': 'María García',
-      '{fecha_turno}': '15/03/2024',
-      '{hora_turno}': '14:30',
-      '{nombre_trabajo}': 'Corte y Color',
-      '{precio}': '$15,000',
-      '{deposito}': '$7,500',
-      '{fecha_entrega}': '20/03/2024',
-      '{notas}': 'Traer foto de referencia'
-    };
-
-    Object.entries(sampleData).forEach(([key, value]) => {
-      preview = preview.replace(new RegExp(key.replace(/[{}]/g, '\\$&'), 'g'), value);
-    });
-
-    setPreviewContent(preview);
+    // Replace dynamic variables with sample data
+    preview = preview.replace(/{nombre_cliente}/g, 'Juan Pérez');
+    preview = preview.replace(/{fecha_turno}/g, '15/02/2024 10:30');
+    preview = preview.replace(/{categoria_trabajo}/g, 'Arreglo de Prenda');
+    preview = preview.replace(/{estado_trabajo}/g, 'En Progreso');
+    preview = preview.replace(/{precio}/g, '$2,500');
+    preview = preview.replace(/{deposito}/g, '$1,000');
+    preview = preview.replace(/{fecha_entrega}/g, '20/02/2024');
+    preview = preview.replace(/{notas}/g, 'Ajustar largo de pantalón');
+    
+    return preview;
   }, [formData.message_content]);
 
-  useEffect(() => {
-    generatePreview();
-  }, [generatePreview]);
-
-  const handleVariableInsert = (variable: string) => {
-    const textarea = document.getElementById('message-content') as HTMLTextAreaElement;
-    if (textarea) {
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      const newContent = formData.message_content.substring(0, start) + variable + formData.message_content.substring(end);
+  const insertVariable = (variable: string) => {
+    if (textareaRef) {
+      const start = textareaRef.selectionStart;
+      const end = textareaRef.selectionEnd;
+      const newContent = formData.message_content.substring(0, start) + 
+                        variable + 
+                        formData.message_content.substring(end);
       
       setFormData(prev => ({ ...prev, message_content: newContent }));
       
-      // Focus back to textarea and set cursor position
+      // Set cursor position after inserted variable
       setTimeout(() => {
-        textarea.focus();
-        textarea.setSelectionRange(start + variable.length, start + variable.length);
+        if (textareaRef) {
+          textareaRef.selectionStart = textareaRef.selectionEnd = start + variable.length;
+          textareaRef.focus();
+        }
       }, 0);
     }
   };
 
-  const handleEmojiInsert = (emoji: string) => {
-    const textarea = document.getElementById('message-content') as HTMLTextAreaElement;
-    if (textarea) {
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      const newContent = formData.message_content.substring(0, start) + emoji + formData.message_content.substring(end);
+  const insertEmoji = (emoji: string) => {
+    if (textareaRef) {
+      const start = textareaRef.selectionStart;
+      const end = textareaRef.selectionEnd;
+      const newContent = formData.message_content.substring(0, start) + 
+                        emoji + 
+                        formData.message_content.substring(end);
       
       setFormData(prev => ({ ...prev, message_content: newContent }));
       
+      // Set cursor position after inserted emoji
       setTimeout(() => {
-        textarea.focus();
-        textarea.setSelectionRange(start + emoji.length, start + emoji.length);
+        if (textareaRef) {
+          textareaRef.selectionStart = textareaRef.selectionEnd = start + emoji.length;
+          textareaRef.focus();
+        }
       }, 0);
     }
   };
 
-  const handleCreateNew = () => {
-    const newFormData = {
+  const handleNew = () => {
+    setSelectedTemplate(null);
+    setFormData({
       name: '',
       work_status: '',
       work_category_id: '',
       message_content: ''
-    };
-    setFormData(newFormData);
-    setOriginalFormData(newFormData);
-    setSelectedTemplate(null);
-    setIsCreating(true);
-    setIsEditing(false);
+    });
+    setOriginalFormData({
+      name: '',
+      work_status: '',
+      work_category_id: '',
+      message_content: ''
+    });
+    setIsEditing(true);
     setValidationError(null);
+    setConflictingTemplate(null);
   };
 
-  const handleSelectTemplate = (template: MessageTemplate) => {
+  const handleEdit = (template: MessageTemplate) => {
+    setSelectedTemplate(template);
     const newFormData = {
       name: template.name,
       work_status: template.work_status,
@@ -221,25 +248,13 @@ const MessageTemplates: React.FC = () => {
     };
     setFormData(newFormData);
     setOriginalFormData(newFormData);
-    setSelectedTemplate(template);
     setIsEditing(true);
-    setIsCreating(false);
-    setValidationError(null);
   };
 
   const handleSave = async () => {
-    if (!formData.name || !formData.work_status || !formData.message_content) {
-      toast({
-        title: 'Error',
-        description: 'Por favor complete todos los campos obligatorios',
-        variant: 'destructive'
-      });
-      return;
-    }
-
     if (validationError) {
       toast({
-        title: 'Error',
+        title: 'Error de validación',
         description: validationError,
         variant: 'destructive'
       });
@@ -251,38 +266,43 @@ const MessageTemplates: React.FC = () => {
         name: formData.name,
         work_status: formData.work_status,
         work_category_id: formData.work_category_id || null,
-        message_content: formData.message_content
+        message_content: formData.message_content,
+        is_active: true
       };
 
-      if (isCreating) {
-        const { error } = await supabase
-          .from('message_templates')
-          .insert(templateData as any);
-
-        if (error) throw error;
-
-        toast({
-          title: 'Éxito',
-          description: 'Template creado correctamente'
-        });
-      } else if (selectedTemplate) {
+      if (selectedTemplate) {
+        // Update existing template
         const { error } = await supabase
           .from('message_templates')
           .update(templateData)
           .eq('id', selectedTemplate.id);
-
+        
         if (error) throw error;
-
+        
         toast({
-          title: 'Éxito',
-          description: 'Template actualizado correctamente'
+          title: 'Template actualizado',
+          description: 'El template se ha actualizado correctamente'
+        });
+      } else {
+        // Create new template (omit id since it will be auto-generated)
+        const { error } = await supabase
+          .from('message_templates')
+          .insert({
+            ...templateData,
+            id: '' // Will be auto-generated by trigger
+          });
+        
+        if (error) throw error;
+        
+        toast({
+          title: 'Template creado',
+          description: 'El template se ha creado correctamente'
         });
       }
 
-      await loadTemplates();
-      setIsCreating(false);
       setIsEditing(false);
       setSelectedTemplate(null);
+      loadTemplates();
     } catch (error) {
       console.error('Error saving template:', error);
       toast({
@@ -294,42 +314,81 @@ const MessageTemplates: React.FC = () => {
   };
 
   const handleCancel = () => {
-    setIsCreating(false);
     setIsEditing(false);
     setSelectedTemplate(null);
+    setFormData({
+      name: '',
+      work_status: '',
+      work_category_id: '',
+      message_content: ''
+    });
     setValidationError(null);
+    setConflictingTemplate(null);
   };
 
   const handleRestore = () => {
     setFormData(originalFormData);
     setValidationError(null);
+    setConflictingTemplate(null);
+  };
+
+  const handleDelete = async (template: MessageTemplate) => {
+    if (!confirm('¿Estás seguro de que quieres eliminar este template?')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('message_templates')
+        .delete()
+        .eq('id', template.id);
+      
+      if (error) throw error;
+      
+      toast({
+        title: 'Template eliminado',
+        description: 'El template se ha eliminado correctamente'
+      });
+      
+      loadTemplates();
+    } catch (error) {
+      console.error('Error deleting template:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudo eliminar el template',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    const option = WORK_STATUS_OPTIONS.find(opt => opt.value === status);
+    return option ? option.label : status;
   };
 
   const getCategoryName = (categoryId: string | null) => {
     if (!categoryId) return 'Todas las categorías';
-    const category = categories.find(c => c.id === categoryId);
-    return category?.name || 'Categoría desconocida';
+    const category = categories.find(cat => cat.id === categoryId);
+    return category ? category.name : 'Categoría desconocida';
   };
 
-  const getStatusLabel = (status: string) => {
-    const statusLabels: Record<string, string> = {
-      pending: 'Pendiente',
-      in_progress: 'En Progreso',
-      completed: 'Completado',
-      delivered: 'Entregado',
-      cancelled: 'Cancelado'
-    };
-    return statusLabels[status] || status;
+  const isFormValid = () => {
+    return formData.name.trim() && 
+           formData.work_status && 
+           formData.message_content.trim() && 
+           !validationError;
   };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Configuración de Templates</h1>
-          <p className="text-muted-foreground">Gestiona plantillas de mensajes para notificaciones automáticas</p>
+          <h1 className="text-3xl font-bold">Configuración de Templates</h1>
+          <p className="text-muted-foreground">
+            Gestiona los templates de mensajes para notificaciones automáticas
+          </p>
         </div>
-        <Button onClick={handleCreateNew} className="flex items-center gap-2">
+        <Button onClick={handleNew} className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
           Nuevo Template
         </Button>
@@ -340,30 +399,54 @@ const MessageTemplates: React.FC = () => {
         <Card>
           <CardHeader>
             <CardTitle>Templates Existentes</CardTitle>
-            <CardDescription>
-              Selecciona un template para editarlo
-            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-4">
             {templates.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">
+              <p className="text-muted-foreground text-center py-4">
                 No hay templates configurados
               </p>
             ) : (
               templates.map((template) => (
-                <div
-                  key={template.id}
-                  className={`p-3 border rounded-lg cursor-pointer transition-colors hover:bg-accent ${
-                    selectedTemplate?.id === template.id ? 'bg-accent border-primary' : ''
-                  }`}
-                  onClick={() => handleSelectTemplate(template)}
+                <div 
+                  key={template.id} 
+                  className="border rounded-lg p-4 space-y-2 hover:bg-muted/50 cursor-pointer"
+                  onClick={() => handleEdit(template)}
                 >
-                  <div className="flex justify-between items-start mb-2">
+                  <div className="flex justify-between items-start">
                     <h3 className="font-medium">{template.name}</h3>
-                    <Badge variant="secondary">{getStatusLabel(template.work_status)}</Badge>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEdit(template);
+                        }}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(template);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {getCategoryName(template.work_category_id)}
+                  <div className="flex gap-2">
+                    <Badge variant="secondary">
+                      {getStatusLabel(template.work_status)}
+                    </Badge>
+                    <Badge variant="outline">
+                      {getCategoryName(template.work_category_id)}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {template.message_content}
                   </p>
                 </div>
               ))
@@ -371,178 +454,167 @@ const MessageTemplates: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Editor de Template */}
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              {isCreating ? 'Crear Nuevo Template' : isEditing ? 'Editar Template' : 'Editor de Template'}
-            </CardTitle>
-            <CardDescription>
-              {isCreating || isEditing ? 'Configure los detalles del template' : 'Selecciona un template para editarlo'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {(isCreating || isEditing) && (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="template-name">Nombre del Template *</Label>
-                    <Input
-                      id="template-name"
-                      value={formData.name}
-                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder="Ej: Recordatorio de turno"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="work-status">Estado *</Label>
-                    <Select value={formData.work_status} onValueChange={(value) => 
-                      setFormData(prev => ({ ...prev, work_status: value }))
-                    }>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar estado" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {workStatuses.map((status) => (
-                          <SelectItem key={status} value={status}>
-                            {getStatusLabel(status)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="category">Tipo de Trabajo</Label>
-                  <Select value={formData.work_category_id} onValueChange={(value) => 
-                    setFormData(prev => ({ ...prev, work_category_id: value }))
-                  }>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Todas las categorías" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Todas las categorías</SelectItem>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {validationError && (
-                  <Alert variant="destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertDescription>{validationError}</AlertDescription>
-                  </Alert>
-                )}
-
-                <Separator />
-
-                {/* Variables Dinámicas */}
-                <div>
-                  <Label className="text-sm font-medium">Variables Dinámicas</Label>
-                  <p className="text-xs text-muted-foreground mb-2">
-                    Haz clic en una variable para insertarla en el mensaje
-                  </p>
-                  <div className="flex flex-wrap gap-1">
-                    {TEMPLATE_VARIABLES.map((variable) => (
-                      <Button
-                        key={variable.key}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleVariableInsert(variable.key)}
-                        className="text-xs h-8"
-                        title={variable.description}
-                      >
-                        <Copy className="h-3 w-3 mr-1" />
-                        {variable.label}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Emojis */}
-                <div>
-                  <Label className="text-sm font-medium">Emojis Rápidos</Label>
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {EMOJI_SHORTCUTS.map((emoji) => (
-                      <Button
-                        key={emoji}
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEmojiInsert(emoji)}
-                        className="text-lg h-8 w-8 p-0"
-                      >
-                        {emoji}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="message-content">Contenido del Mensaje *</Label>
-                  <Textarea
-                    id="message-content"
-                    value={formData.message_content}
-                    onChange={(e) => setFormData(prev => ({ ...prev, message_content: e.target.value }))}
-                    placeholder="Escribe tu mensaje aquí. Usa las variables dinámicas para personalizar..."
-                    className="min-h-[120px]"
-                  />
-                </div>
-
-                {/* Vista Previa */}
-                {formData.message_content && (
-                  <div>
-                    <Label className="flex items-center gap-2">
-                      <Eye className="h-4 w-4" />
-                      Vista Previa
-                    </Label>
-                    <div className="p-3 bg-muted rounded-lg border mt-2">
-                      <p className="whitespace-pre-wrap text-sm">{previewContent}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Botones de Acción */}
-                <div className="flex justify-between pt-4">
-                  <div className="flex gap-2">
-                    <Button onClick={handleCancel} variant="outline">
-                      <X className="h-4 w-4 mr-2" />
-                      Cancelar
-                    </Button>
-                    {isEditing && (
-                      <Button onClick={handleRestore} variant="outline">
-                        <RotateCcw className="h-4 w-4 mr-2" />
-                        Restaurar
-                      </Button>
-                    )}
-                  </div>
-                  <Button 
-                    onClick={handleSave} 
-                    disabled={!!validationError || !formData.name || !formData.work_status || !formData.message_content}
-                  >
-                    <Save className="h-4 w-4 mr-2" />
-                    {isCreating ? 'Crear Template' : 'Guardar Cambios'}
-                  </Button>
-                </div>
-              </>
-            )}
-
-            {!isCreating && !isEditing && (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">
-                  Selecciona un template de la lista o crea uno nuevo
-                </p>
+        {/* Editor de Templates */}
+        {isEditing && (
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                {selectedTemplate ? 'Editar Template' : 'Nuevo Template'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="name">Nombre del Template</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Ej: Notificación de trabajo completado"
+                />
               </div>
-            )}
-          </CardContent>
-        </Card>
+
+              <div>
+                <Label htmlFor="work_status">Estado del Trabajo</Label>
+                <Select
+                  value={formData.work_status}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, work_status: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona un estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {WORK_STATUS_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="work_category_id">Categoría de Trabajo</Label>
+                <Select
+                  value={formData.work_category_id}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, work_category_id: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona una categoría" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todas las categorías</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Validation Error */}
+              {validationError && (
+                <Alert variant="destructive">
+                  <AlertDescription>
+                    {validationError}
+                    {conflictingTemplate && (
+                      <div className="mt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEdit(conflictingTemplate)}
+                        >
+                          Ver template existente
+                        </Button>
+                      </div>
+                    )}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              <div>
+                <Label htmlFor="message_content">Mensaje del Template</Label>
+                <Textarea
+                  id="message_content"
+                  ref={setTextareaRef}
+                  value={formData.message_content}
+                  onChange={(e) => setFormData(prev => ({ ...prev, message_content: e.target.value }))}
+                  placeholder="Escribe tu mensaje aquí. Usa las variables dinámicas para personalizar..."
+                  className="min-h-[120px]"
+                />
+              </div>
+
+              {/* Variables Dinámicas */}
+              <div>
+                <Label>Variables Dinámicas</Label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {DYNAMIC_VARIABLES.map((variable) => (
+                    <Button
+                      key={variable.key}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => insertVariable(variable.key)}
+                      title={variable.description}
+                    >
+                      {variable.key}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Emojis */}
+              <div>
+                <Label>Emojis de WhatsApp</Label>
+                <div className="flex flex-wrap gap-1 mt-2 max-h-32 overflow-y-auto">
+                  {WHATSAPP_EMOJIS.map((emoji, index) => (
+                    <Button
+                      key={index}
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => insertEmoji(emoji)}
+                      className="h-8 w-8 p-0"
+                    >
+                      {emoji}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Vista Previa */}
+              <div>
+                <Label>Vista Previa</Label>
+                <div className="border rounded-lg p-3 bg-muted/50 min-h-[80px] whitespace-pre-wrap">
+                  {generatePreview || 'La vista previa aparecerá aquí...'}
+                </div>
+              </div>
+
+              {/* Botones de Acción */}
+              <div className="flex gap-2 pt-4">
+                <Button 
+                  onClick={handleSave} 
+                  disabled={!isFormValid()}
+                  className="flex items-center gap-2"
+                >
+                  <Save className="h-4 w-4" />
+                  Guardar
+                </Button>
+                <Button variant="outline" onClick={handleCancel}>
+                  <X className="h-4 w-4" />
+                  Cancelar
+                </Button>
+                <Button variant="outline" onClick={handleRestore}>
+                  <RotateCcw className="h-4 w-4" />
+                  Restaurar
+                </Button>
+                <Button variant="outline" onClick={() => setValidationError(null)}>
+                  <CheckCircle className="h-4 w-4" />
+                  Validar
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
-};
-
-export default MessageTemplates;
+}

@@ -47,7 +47,7 @@ const App = () => (
             <Route path="/workshop-info" element={<Layout><WorkshopInfo /></Layout>} /> {/* New route for WorkshopInfo */}
             <Route path="/edit-work/:id" element={<Layout><EditWork /></Layout>} /> {/* Ruta para editar trabajo */}
             <Route path="/users" element={<Layout><Users /></Layout>} />
-            <Route path="/templates" element={<Layout><MessageTemplates /></Layout>} />
+            <Route path="/message-templates" element={<Layout><MessageTemplates /></Layout>} />
             <Route path="/reports" element={<Layout><Reports /></Layout>} />
             <Route path="*" element={<NotFound />} />
           </Routes>

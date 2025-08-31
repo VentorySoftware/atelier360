@@ -14,6 +14,7 @@ import {
   Plus, Save, FileText, TrendingUp, Clock4, CalendarCheck,
   MessageCircle
 } from 'lucide-react';
+import { NotifyClientButton } from '@/components/NotifyClientButton';
 import { 
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
 } from '@/components/ui/select';
@@ -751,16 +752,25 @@ const WorkDetail: React.FC = () => {
                           </svg>
                           Enviar WhatsApp
                         </a>
-                        {work.status === 'completed' && (
-                          <Button
-                            onClick={notifyClient}
-                            className="bg-gradient-success hover-scale transition-smooth text-sm"
-                            size="sm"
-                          >
-                            <MessageCircle className="h-4 w-4 mr-2" />
-                            Notificar al Cliente
-                          </Button>
-                        )}
+                        <NotifyClientButton
+                          workData={{
+                            id: work.id,
+                            status: work.status,
+                            category_id: work.category_id,
+                            client_id: work.client_id,
+                            price: work.price,
+                            deposit_amount: work.deposit_amount,
+                            tentative_delivery_date: work.tentative_delivery_date,
+                            notes: work.notes
+                          }}
+                          clientData={{
+                            name: work.clients.name,
+                            phone: work.clients.phone
+                          }}
+                          categoryName={work.work_categories.name}
+                          variant="outline"
+                          size="sm"
+                        />
                       </div>
                     )}
                   </div>
