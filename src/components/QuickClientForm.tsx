@@ -52,6 +52,13 @@ const QuickClientForm: React.FC<QuickClientFormProps> = ({ onClientCreated }) =>
     setLoading(true);
 
     try {
+      console.log('Creating client with data:', {
+        name: formData.name.trim(),
+        phone: formData.phone.trim() || null,
+        email: formData.email.trim() || null,
+        created_by: null
+      });
+
       const { data, error } = await supabase
         .from('clients')
         .insert(
@@ -65,7 +72,11 @@ const QuickClientForm: React.FC<QuickClientFormProps> = ({ onClientCreated }) =>
         .select()
         .single();
 
+      console.log('Supabase response:', { data, error });
+
       if (error) throw error;
+
+      console.log('Client created successfully:', data);
 
       toast({
         title: 'Cliente creado',
@@ -74,6 +85,7 @@ const QuickClientForm: React.FC<QuickClientFormProps> = ({ onClientCreated }) =>
 
       setFormData({ name: '', phone: '', email: '' });
       setOpen(false);
+      console.log('Calling onClientCreated with:', data);
       onClientCreated(data);
 
     } catch (error) {

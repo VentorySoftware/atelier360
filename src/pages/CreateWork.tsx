@@ -89,8 +89,17 @@ export default function CreateWork() {
   };
 
   const handleClientCreated = (newClient: Client) => {
-    setClients(prev => [...prev, newClient]);
-    setFormData(prev => ({ ...prev, client_id: newClient.id }));
+    console.log('handleClientCreated called with:', newClient);
+    setClients(prev => {
+      const updated = [...prev, newClient];
+      console.log('Updated clients list:', updated);
+      return updated;
+    });
+    setFormData(prev => {
+      const updated = { ...prev, client_id: newClient.id };
+      console.log('Updated form data:', updated);
+      return updated;
+    });
   };
 
   const calculateDeliveryDate = (categoryId: string) => {
