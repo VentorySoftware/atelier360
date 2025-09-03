@@ -40,6 +40,15 @@ const QuickClientForm: React.FC<QuickClientFormProps> = ({ onClientCreated }) =>
       return;
     }
 
+    if (!formData.phone.trim()) {
+      toast({
+        title: 'Error',
+        description: 'El teléfono del cliente es obligatorio',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -82,14 +91,14 @@ const QuickClientForm: React.FC<QuickClientFormProps> = ({ onClientCreated }) =>
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="ml-2">
+        <Button variant="outline" size="sm">
           <Plus className="h-4 w-4 mr-1" />
-          Nuevo Cliente
+          Cliente
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Crear Nuevo Cliente</DialogTitle>
+          <DialogTitle>Alta Rápida de Cliente</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -104,13 +113,14 @@ const QuickClientForm: React.FC<QuickClientFormProps> = ({ onClientCreated }) =>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phone">Teléfono</Label>
+            <Label htmlFor="phone">Teléfono *</Label>
             <Input
               id="phone"
               type="tel"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               placeholder="Número de teléfono"
+              required
             />
           </div>
 
@@ -121,7 +131,7 @@ const QuickClientForm: React.FC<QuickClientFormProps> = ({ onClientCreated }) =>
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="Correo electrónico"
+              placeholder="Correo electrónico (opcional)"
             />
           </div>
 

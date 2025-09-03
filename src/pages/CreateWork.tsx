@@ -88,6 +88,11 @@ export default function CreateWork() {
     }
   };
 
+  const handleClientCreated = (newClient: Client) => {
+    setClients(prev => [...prev, newClient]);
+    setFormData(prev => ({ ...prev, client_id: newClient.id }));
+  };
+
   const calculateDeliveryDate = (categoryId: string) => {
     const category = categories.find(c => c.id === categoryId);
     if (!category) return '';
@@ -231,18 +236,21 @@ export default function CreateWork() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="client">Cliente *</Label>
-                <Select value={formData.client_id} onValueChange={(value) => setFormData({ ...formData, client_id: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona un cliente" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id}>
-                        {client.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-2">
+                  <Select value={formData.client_id} onValueChange={(value) => setFormData({ ...formData, client_id: value })}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Selecciona un cliente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clients.map((client) => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <QuickClientForm onClientCreated={handleClientCreated} />
+                </div>
               </div>
             </div>
 
