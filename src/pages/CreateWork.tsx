@@ -16,6 +16,13 @@ import { useAuth } from '@/hooks/useAuth';
 interface Client {
   id: string;
   name: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+  created_by?: string;
 }
 
 interface Category {
@@ -88,18 +95,17 @@ export default function CreateWork() {
     }
   };
 
-  const handleClientCreated = (newClient: Client) => {
-    console.log('handleClientCreated called with:', newClient);
-    setClients(prev => {
-      const updated = [...prev, newClient];
-      console.log('Updated clients list:', updated);
-      return updated;
-    });
-    setFormData(prev => {
-      const updated = { ...prev, client_id: newClient.id };
-      console.log('Updated form data:', updated);
-      return updated;
-    });
+  const handleClientCreated = (newClient: any) => {
+    // Normalizar el nuevo cliente para que coincida con el formato esperado
+    const normalizedClient: Client = {
+      id: newClient.id,
+      name: newClient.name,
+      phone: newClient.phone,
+      email: newClient.email
+    };
+    
+    setClients(prev => [...prev, normalizedClient]);
+    setFormData(prev => ({ ...prev, client_id: newClient.id }));
   };
 
   const calculateDeliveryDate = (categoryId: string) => {
