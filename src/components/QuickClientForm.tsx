@@ -4,7 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Plus } from 'lucide-react';
 
 interface Client {
@@ -99,6 +99,9 @@ const QuickClientForm: React.FC<QuickClientFormProps> = ({ onClientCreated }) =>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Alta Rápida de Cliente</DialogTitle>
+          <DialogDescription>
+            Completa la información básica del cliente para crearlo rápidamente.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">

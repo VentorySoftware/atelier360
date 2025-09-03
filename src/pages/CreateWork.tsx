@@ -96,6 +96,11 @@ export default function CreateWork() {
   };
 
   const handleClientCreated = (newClient: any) => {
+    console.log('=== handleClientCreated START ===');
+    console.log('New client received:', newClient);
+    console.log('Current clients before update:', clients);
+    console.log('Current formData before update:', formData);
+    
     // Normalizar el nuevo cliente para que coincida con el formato esperado
     const normalizedClient: Client = {
       id: newClient.id,
@@ -104,8 +109,17 @@ export default function CreateWork() {
       email: newClient.email
     };
     
-    setClients(prev => [...prev, normalizedClient]);
-    setFormData(prev => ({ ...prev, client_id: newClient.id }));
+    setClients(prev => {
+      const updated = [...prev, normalizedClient];
+      console.log('Setting new clients list:', updated);
+      return updated;
+    });
+    setFormData(prev => {
+      const updated = { ...prev, client_id: newClient.id };
+      console.log('Setting new formData:', updated);
+      return updated;
+    });
+    console.log('=== handleClientCreated END ===');
   };
 
   const calculateDeliveryDate = (categoryId: string) => {
@@ -252,16 +266,25 @@ export default function CreateWork() {
               <div className="space-y-2">
                 <Label htmlFor="client">Cliente *</Label>
                 <div className="flex gap-2">
-                  <Select value={formData.client_id} onValueChange={(value) => setFormData({ ...formData, client_id: value })}>
+                  <Select 
+                    value={formData.client_id} 
+                    onValueChange={(value) => {
+                      console.log('Select value changed to:', value);
+                      setFormData({ ...formData, client_id: value });
+                    }}
+                  >
                     <SelectTrigger className="flex-1">
                       <SelectValue placeholder="Selecciona un cliente" />
                     </SelectTrigger>
                     <SelectContent>
-                      {clients.map((client) => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.name}
-                        </SelectItem>
-                      ))}
+                      {clients.map((client) => {
+                        console.log('Rendering client option:', client);
+                        return (
+                          <SelectItem key={client.id} value={client.id}>
+                            {client.name}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                   <QuickClientForm onClientCreated={handleClientCreated} />
