@@ -52,29 +52,41 @@ const QuickClientForm: React.FC<QuickClientFormProps> = ({ onClientCreated }) =>
     setLoading(true);
 
     try {
+      console.log('Creating client with data:', {
+        name: formData.name.trim(),
+        phone: formData.phone.trim() || null,
+        email: formData.email.trim() || null,
+        created_by: null
+      });
+
       const { data, error } = await supabase
         .from('clients')
-        .insert(
-          {
-            name: formData.name.trim(),
-            phone: formData.phone.trim() || null,
-            email: formData.email.trim() || null,
-            created_by: null
-          } as any
-        )
+        .insert({
+          name: formData.name.trim(),
+          phone: formData.phone.trim() || null,
+          email: formData.email.trim() || null,
+          created_by: null
+        } as any)
         .select()
         .single();
 
+      console.log('Supabase response:', { data, error });
+
       if (error) throw error;
+
+      console.log('Client created successfully, calling onClientCreated with:', data);
+      
+      // Reset form and close modal BEFORE calling onClientCreated
+      setFormData({ name: '', phone: '', email: '' });
+      setOpen(false);
+      
+      // Call the callback to notify parent component
+      onClientCreated(data);
 
       toast({
         title: 'Cliente creado',
         description: 'El cliente se ha creado correctamente'
       });
-
-      setFormData({ name: '', phone: '', email: '' });
-      setOpen(false);
-      onClientCreated(data);
 
     } catch (error) {
       console.error('Error creating client:', error);

@@ -270,21 +270,18 @@ export default function CreateWork() {
                     value={formData.client_id} 
                     onValueChange={(value) => {
                       console.log('Select value changed to:', value);
-                      setFormData({ ...formData, client_id: value });
+                      setFormData(prev => ({ ...prev, client_id: value }));
                     }}
                   >
                     <SelectTrigger className="flex-1">
                       <SelectValue placeholder="Selecciona un cliente" />
                     </SelectTrigger>
                     <SelectContent>
-                      {clients.map((client) => {
-                        console.log('Rendering client option:', client);
-                        return (
-                          <SelectItem key={client.id} value={client.id}>
-                            {client.name}
-                          </SelectItem>
-                        );
-                      })}
+                      {clients.map((client) => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <QuickClientForm onClientCreated={handleClientCreated} />
