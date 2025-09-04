@@ -105,9 +105,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
         description: 'La cita se ha programado correctamente',
       });
 
-      setDate(undefined);
-      setTime('');
-      setNotes('');
+      // NO reseteamos los campos para que el usuario vea la cita creada
       onAppointmentCreated({
         appointment_date: appointmentDate,
         appointment_time: time

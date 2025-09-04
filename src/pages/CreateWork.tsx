@@ -447,19 +447,41 @@ export default function CreateWork() {
                   <User className="h-4 w-4 text-primary" />
                   <Label className="text-base font-medium">Cita con el cliente *</Label>
                 </div>
-                <AppointmentForm
-                  workId={formData.client_id}
-                  clientId={formData.client_id}
-                  onAppointmentCreated={(appointmentData) => {
-                    // Actualizar el formulario con los datos de la cita
-                    setFormData({
-                      ...formData,
-                      appointment_date: appointmentData.appointment_date,
-                      appointment_time: appointmentData.appointment_time
-                    });
-                  }}
-                  onCancel={() => setFormData({ ...formData, appointment_date: '', appointment_time: '' })}
-                />
+                
+                {/* Mostrar datos de la cita si ya está programada */}
+                {formData.appointment_date && formData.appointment_time ? (
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-green-800">Cita programada</p>
+                        <p className="text-sm text-green-600">
+                          Fecha: {new Date(formData.appointment_date).toLocaleDateString('es-ES')} - Hora: {formData.appointment_time}
+                        </p>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setFormData(prev => ({ ...prev, appointment_date: '', appointment_time: '' }))}
+                      >
+                        Cambiar cita
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <AppointmentForm
+                    workId={formData.client_id}
+                    clientId={formData.client_id}
+                    onAppointmentCreated={(appointmentData) => {
+                      console.log('Appointment created:', appointmentData);
+                      setFormData(prev => ({
+                        ...prev,
+                        appointment_date: appointmentData.appointment_date,
+                        appointment_time: appointmentData.appointment_time
+                      }));
+                    }}
+                    onCancel={() => setFormData(prev => ({ ...prev, appointment_date: '', appointment_time: '' }))}
+                  />
+                )}
               </div>
             )}
           </CardContent>
